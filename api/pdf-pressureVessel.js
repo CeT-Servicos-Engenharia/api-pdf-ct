@@ -461,6 +461,7 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
   let y = 700;
   page2.drawText("1.1 DADOS CADASTRAIS.....................................................................2", { x: 50, y, size: 10, font: helveticaFont });
   y -= 14;
+  let y = 700;
   page2.drawText("1.2 RESPONSÁVEIS TÉCNICOS................................................................2", { x: 50, y, size: 10, font: helveticaFont });
   y -= 14;
   page2.drawText("1.3 CONTROLE DE REVISÃO..................................................................2", { x: 50, y, size: 10, font: helveticaFont });
@@ -497,6 +498,7 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
   y -= 14;
   page2.drawText("8. CONCLUSÃO............................................................................17", { x: 50, y, size: 10, font: helveticaFont });
   y -= 14;
+  let y = 700;
   page2.drawText("1.2 RESPONSÁVEIS TÉCNICOS................................................................2", { x: 50, y, size: 10, font: helveticaFont });
 
   const tableDataTechnicalManagers = [
