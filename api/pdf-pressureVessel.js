@@ -118,13 +118,6 @@ async function addFirebaseImageToPDF(pdfDoc, page, imageUrl, options = {}) {
 
 let countPages = 0;
 
-// Mapeamento de páginas para gerar sumário dinâmico
-let sumarioMap = {};
-function registrarSecaoSumario(titulo, pagina) {
-  sumarioMap[titulo] = pagina;
-}
-
-
 async function fetchImage(url) {
   try {
     const response = await fetch(url);
@@ -456,50 +449,169 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
     size: 24,
     font: helveticaBoldFont,
   });
-  registrarSecaoSumario("1.1 DADOS CADASTRAIS", countPages);
-  
-  let y = 700;
-  page2.drawText("1.1 DADOS CADASTRAIS.....................................................................2", { x: 50, y, size: 10, font: helveticaFont });
-  y -= 14;
-  let y = 700;
-  page2.drawText("1.2 RESPONSÁVEIS TÉCNICOS................................................................2", { x: 50, y, size: 10, font: helveticaFont });
-  y -= 14;
-  page2.drawText("1.3 CONTROLE DE REVISÃO..................................................................2", { x: 50, y, size: 10, font: helveticaFont });
-  y -= 14;
-  page2.drawText("1.4 INSPEÇÕES CONTRATADAS................................................................2", { x: 50, y, size: 10, font: helveticaFont });
-  y -= 14;
-  page2.drawText("1.5 DADOS DO EQUIPAMENTO.................................................................3", { x: 50, y, size: 10, font: helveticaFont });
-  y -= 14;
-  page2.drawText("1.6 CATEGORIZAÇÃO........................................................................4", { x: 50, y, size: 10, font: helveticaFont });
-  y -= 14;
-  page2.drawText("1.7 PESSOAS QUE ACOMPANHARAM.............................................................4", { x: 50, y, size: 10, font: helveticaFont });
-  y -= 14;
-  page2.drawText("1.8 DOCUMENTAÇÃO EXISTENTE...............................................................5", { x: 50, y, size: 10, font: helveticaFont });
-  y -= 14;
-  page2.drawText("2 DEFINIÇÃO..............................................................................6", { x: 50, y, size: 10, font: helveticaFont });
-  y -= 14;
-  page2.drawText("3 OBJETIVO...............................................................................7", { x: 50, y, size: 10, font: helveticaFont });
-  y -= 14;
-  page2.drawText("4 NORMAS.................................................................................7", { x: 50, y, size: 10, font: helveticaFont });
-  y -= 14;
-  page2.drawText("5. CARACTERIZAÇÃO........................................................................7", { x: 50, y, size: 10, font: helveticaFont });
-  y -= 14;
-  page2.drawText("5.1 DISPOSITIVOS.........................................................................7", { x: 50, y, size: 10, font: helveticaFont });
-  y -= 14;
-  page2.drawText("5.2 MAPA DE MEDIÇÃO......................................................................9", { x: 50, y, size: 10, font: helveticaFont });
-  y -= 14;
-  page2.drawText("5.3 RECOMENDAÇÕES.......................................................................10", { x: 50, y, size: 10, font: helveticaFont });
-  y -= 14;
-  page2.drawText("5.4 REGISTROS FOTOGRÁFICOS..............................................................13", { x: 50, y, size: 10, font: helveticaFont });
-  y -= 14;
-  page2.drawText("6. RECOMENDAÇÕES ADICIONAIS.............................................................15", { x: 50, y, size: 10, font: helveticaFont });
-  y -= 14;
-  page2.drawText("7. LIMITAÇÕES DO RELATÓRIO..............................................................16", { x: 50, y, size: 10, font: helveticaFont });
-  y -= 14;
-  page2.drawText("8. CONCLUSÃO............................................................................17", { x: 50, y, size: 10, font: helveticaFont });
-  y -= 14;
-  let y = 700;
-  page2.drawText("1.2 RESPONSÁVEIS TÉCNICOS................................................................2", { x: 50, y, size: 10, font: helveticaFont });
+  page2.drawText("1.1 DADOS CADASTRAIS.....................................................................2", {
+    x: 50,
+    y: 664,
+    size: 16,
+    font: helveticaBoldFont,
+  });
+
+  const columnWidths = [247.64, 247.64]; // Largura das colunas
+  const rowHeight = 98;
+  const headerRowHeight = 20;
+  const dataRowHeight = 90;
+
+  const tableDataRegistrationData = [
+    ["CLIENTE", "ELABORAÇÃO"], // Cabeçalho
+    [
+      `  ${clientData.person || " "} \n
+        ${clientData.address || " "}, ${clientData.neighborhood || " "}, ${clientData.number || " "
+      } \n
+        CEP: ${clientData.cep || " "} \n
+        CNPJ: ${clientData.cnpj || " "} \n
+        TEL.: ${clientData.phone || " "} \n
+        E-mail: ${clientData.email || " "}`,
+      ` ${engenieerData.name || " "} \n
+        ${engenieerData.address || " "}, ${engenieerData.neighborhood || " "
+      }, ${engenieerData.number || " "} \n
+        CEP: ${engenieerData.cep || " "} \n
+        CNPJ: ${engenieerData.cnpj || " "} \n
+        CREA: ${engenieerData.crea || " "} \n
+        TEL.: ${engenieerData.phone || " "} \n
+        E-mail: ${engenieerData.email || " "}`,
+    ],
+  ];
+
+  // Função para quebrar texto em múltiplas linhas
+  function wrapText(text, maxWidth, font, fontSize) {
+    const words = text.split(' ');
+    let lines = [];
+    let currentLine = '';
+
+    for (const word of words) {
+      const testLine = currentLine ? `${currentLine} ${word}` : word;
+      const testWidth = font.widthOfTextAtSize(testLine, fontSize);
+
+      if (testWidth > maxWidth && currentLine) {
+        lines.push(currentLine);
+        currentLine = word;
+      } else {
+        currentLine = testLine;
+      }
+    }
+    if (currentLine) lines.push(currentLine);
+    return lines;
+  }
+
+  async function drawTableRegistrationData(
+    page,
+    pdfDoc,
+    startX,
+    startY,
+    columnWidths,
+    rowHeight,
+    data,
+    helveticaFont,
+    helveticaBoldFont
+  ) {
+    let currentY = startY;
+
+    // Desenhar cabeçalho com fundo azul
+    const header = data[0];
+    header.forEach((cell, columnIndex) => {
+      const x =
+        startX + columnWidths.slice(0, columnIndex).reduce((a, b) => a + b, 0);
+      page.drawRectangle({
+        x,
+        y: currentY - headerRowHeight,
+        width: columnWidths[columnIndex],
+        height: headerRowHeight,
+        color: rgb(0.102, 0.204, 0.396), // Azul
+        borderColor: rgb(0.102, 0.204, 0.396),
+        borderWidth: 1,
+      });
+      page.drawText(cell, {
+        x: x + 10, // Margem interna
+        y: currentY - headerRowHeight / 2 - 5,
+        size: 12,
+        font: helveticaBoldFont,
+        color: rgb(1, 1, 1), // Branco
+      });
+    });
+
+    // Desenhar os dados da tabela
+    currentY -= headerRowHeight; // Ajuste vertical após cabeçalho
+    const textPadding = 10; // Margem interna do texto
+    const lineHeight = 12; // Espaçamento entre linhas
+    
+    data.slice(1).forEach((row) => {
+      // Calcular a altura necessária para esta linha baseada no conteúdo
+      let maxLinesInRow = 1;
+      
+      row.forEach((cell, columnIndex) => {
+        const maxWidth = columnWidths[columnIndex] - 2 * textPadding;
+        const allLines = cell.split("\n").flatMap(line => 
+          wrapText(line.trim(), maxWidth, helveticaFont, 10)
+        );
+        maxLinesInRow = Math.max(maxLinesInRow, allLines.length);
+      });
+      
+      // Altura dinâmica baseada no número de linhas
+      const dynamicRowHeight = Math.max(dataRowHeight, maxLinesInRow * lineHeight + 2 * textPadding);
+      
+      row.forEach((cell, columnIndex) => {
+        const x =
+          startX +
+          columnWidths.slice(0, columnIndex).reduce((a, b) => a + b, 0);
+        page.drawRectangle({
+          x,
+          y: currentY - dynamicRowHeight,
+          width: columnWidths[columnIndex],
+          height: dynamicRowHeight,
+          borderColor: rgb(0.102, 0.204, 0.396),
+          borderWidth: 1,
+        });
+
+        // Quebrar texto em linhas respeitando a largura da coluna
+        const maxWidth = columnWidths[columnIndex] - 2 * textPadding;
+        const lines = cell.split("\n").flatMap(line => 
+          wrapText(line.trim(), maxWidth, helveticaFont, 10)
+        );
+        let textY = currentY - textPadding;
+
+        lines.forEach((line) => {
+          page.drawText(line, {
+            x: x + textPadding,
+            y: textY - lineHeight,
+            size: 10,
+            font: helveticaFont,
+            color: rgb(0, 0, 0),
+          });
+          textY -= lineHeight;
+        });
+      });
+      currentY -= dynamicRowHeight; // Pular para a próxima linha da tabela
+    });
+  }
+
+  await drawTableRegistrationData(
+    page2,
+    pdfDoc,
+    50,
+    650,
+    columnWidths,
+    rowHeight,
+    tableDataRegistrationData,
+    helveticaFont,
+    helveticaBoldFont
+  );
+
+  page2.drawText("1.2 RESPONSÁVEIS TÉCNICOS................................................................2", {
+    x: 50,
+    y: 510,
+    size: 16,
+    font: helveticaBoldFont,
+  });
 
   const tableDataTechnicalManagers = [
     ["ANALISTA", "ENGENHEIRO"], // Cabeçalho
@@ -596,8 +708,12 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
     helveticaBoldFont
   );
 
-  registrarSecaoSumario("1.3 CONTROLE DE REVISÃO", countPages);
-  page2.drawText("1.3 CONTROLE DE REVISÃO..................................................................2", { x: 50, y, size: 10, font: helveticaFont });
+  page2.drawText("1.3 CONTROLE DE REVISÃO..................................................................2", {
+    x: 50,
+    y: 415,
+    size: 16,
+    font: helveticaBoldFont,
+  });
 
   const tableDataRevisionControl = [
     ["REVISÃO", "DESCRIÇÃO", "RESPONSÁVEL", "DATA"],
@@ -700,8 +816,12 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
     helveticaBoldFont
   );
 
-  registrarSecaoSumario("1.4 INSPEÇÕES CONTRATADAS", countPages);
-  page2.drawText("1.4 INSPEÇÕES CONTRATADAS................................................................2", { x: 50, y, size: 10, font: helveticaFont });
+  page2.drawText("1.4 INSPEÇÕES CONTRATADAS................................................................2", {
+    x: 50,
+    y: 330,
+    size: 16,
+    font: helveticaBoldFont,
+  });
 
   const tableDataContractedInspections = [
     ["TIPO", "CARACTERÍSTICA", "DATA INÍCIO", "DATA TÉRMINO"],
@@ -837,7 +957,6 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
 
   await addHeader(pdfDoc, page3, clientData, headerAssets);
 
-  registrarSecaoSumario("1.5 DADOS DO EQUIPAMENTO", countPages);
   page3.drawText("1.5 DADOS DO EQUIPAMENTO", {
     x: 50,
     y: 720,
@@ -1051,7 +1170,6 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
 
   await addHeader(pdfDoc, page4, clientData, headerAssets);
 
-  registrarSecaoSumario("1.6 CATEGORIZAÇÃO", countPages);
   page4.drawText("1.6 CATEGORIZAÇÃO", {
     x: 50,
     y: 710,
@@ -1144,7 +1262,6 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
     helveticaBoldFont
   );
 
-  registrarSecaoSumario("1.7 PESSOAS QUE ACOMPANHARAM", countPages);
   page4.drawText("1.7 PESSOAS QUE ACOMPANHARAM", {
     x: 50,
     y: 500,
@@ -1169,7 +1286,6 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
 
   await addHeader(pdfDoc, page5, clientData, headerAssets);
 
-  registrarSecaoSumario("1.8 DOCUMENTAÇÃO EXISTENTE", countPages);
   page5.drawText("1.8 DOCUMENTAÇÃO EXISTENTE", {
     x: 50,
     y: 710,
@@ -1301,9 +1417,6 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
 
   console.log("Concluindo pagina 5")
   await addFooter(pdfDoc, page5, data, countPages);
-
-  
-
   countPages++;
 
   console.log("Começando pagina 7")
@@ -1314,7 +1427,6 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
 
   await addHeader(pdfDoc, page7, clientData, headerAssets);
 
-  registrarSecaoSumario("2 DEFINIÇÃO", countPages);
   page7.drawText("2. DEFINIÇÃO", {
     x: 50,
     y: 700,
@@ -3202,7 +3314,6 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
 
   await addHeader(pdfDoc, page14, clientData, headerAssets); // Adiciona o cabeçalho
 
-  registrarSecaoSumario("6. RECOMENDAÇÕES ADICIONAIS", countPages);
   page14.drawText("6. RECOMENDAÇÕES ADICIONAIS", {
     x: 50,
     y: 700,
