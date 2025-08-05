@@ -116,7 +116,7 @@ async function addFirebaseImageToPDF(pdfDoc, page, imageUrl, options = {}) {
 }
 
 
-let countPages = 0;
+let countPages = 1;
 
 async function fetchImage(url) {
   try {
@@ -294,7 +294,7 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
     const formattedDate = data.inspection.endDate ? formatDate(data.inspection.endDate) : "N/A";
 
     const footerTextStart = `${data.numeroProjeto || " "}\nART:${data.artProjeto}`;
-    const footerTextMiddle = `Eng. Mec. Cleonis Batista Santos\nEng. Mec. Seg. Thiago Wherman Candido Borges`;
+    const footerTextMiddle = `Eng. Mec. Thiago Wherman Candido Borges\nEng. Mec. Seg. Thiago Wherman Candido Borges`;
     const footerTextEnd = `C&T.0.1 | ${data.inspection.endDate}\nPágina ${pageNumber}`;
 
     const drawMultilineText = (text, x, y, lineHeight) => {
@@ -310,7 +310,7 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
       });
     };
 
-    const textWidthMiddle = helveticaFont.widthOfTextAtSize("Cleonis Batista Santos", 10);
+    const textWidthMiddle = helveticaFont.widthOfTextAtSize("Thiago Wherman Candido Borges", 10);
     const textWidthEnd = helveticaFont.widthOfTextAtSize("C&T.0.1 | " + data.inspection.endDate, 10);
 
     const xStart = 50;
@@ -437,6 +437,7 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
 
   console.log("Começando pagina 2")
   const page2 = pdfDoc.addPage([595.28, 841.89]);
+  await addFooter(pdfDoc, const page2 = pdfDoc.addPage([595.28, 841.89]);.split('=')[0].trim().split()[1], data, countPages);
   countPages++;
 
   let upTo14 = countPages;
@@ -951,6 +952,7 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
 
   console.log("Começando pagina 3")
   const page3 = pdfDoc.addPage([595.28, 841.89]);
+  await addFooter(pdfDoc, const page3 = pdfDoc.addPage([595.28, 841.89]);.split('=')[0].trim().split()[1], data, countPages);
   countPages++;
 
   let upTo15 = countPages;
@@ -1164,6 +1166,7 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
 
   console.log("Começando pagina 4")
   const page4 = pdfDoc.addPage([595.28, 841.89]);
+  await addFooter(pdfDoc, const page4 = pdfDoc.addPage([595.28, 841.89]);.split('=')[0].trim().split()[1], data, countPages);
   countPages++;
 
   let upTo18 = countPages;
@@ -1280,6 +1283,7 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
 
   console.log("Começando pagina 5")
   const page5 = pdfDoc.addPage([595.28, 841.89]);
+  await addFooter(pdfDoc, const page5 = pdfDoc.addPage([595.28, 841.89]);.split('=')[0].trim().split()[1], data, countPages);
   countPages++;
 
   let upTo19 = countPages;
@@ -1421,6 +1425,8 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
 
   console.log("Começando pagina 7")
   const page7 = pdfDoc.addPage([595.28, 841.89]);
+  await addFooter(pdfDoc, const page7 = pdfDoc.addPage([595.28, 841.89]);.split('=')[0].trim().split()[1], data, countPages);
+  countPages++;
 
 
   let upTo4 = countPages;
@@ -1601,7 +1607,8 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
       const pageWidth = 595.28;
       const pageHeight = 841.89;
       const page8 = pdfDoc.addPage([pageWidth, pageHeight]);
-      countPages++;
+  await addFooter(pdfDoc, const page8 = pdfDoc.addPage([pageWidth, pageHeight]);.split('=')[0].trim().split()[1], data, countPages);
+  countPages++;
 
       await addHeader(pdfDoc, page8, clientData, headerAssets);
 
@@ -1709,6 +1716,7 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
   await generateDevicesPDF(pdfDoc, data.inspection.devicesData);
 
   const page9 = pdfDoc.addPage([595.28, 841.89]);
+  await addFooter(pdfDoc, const page9 = pdfDoc.addPage([595.28, 841.89]);.split('=')[0].trim().split()[1], data, countPages);
   countPages++;
 
   let upTo52 = countPages;
@@ -1982,7 +1990,8 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
 
   if (hasEquipmentBodyData(data)) {
     const page10 = pdfDoc.addPage([595.28, 841.89]);
-    countPages++;
+  await addFooter(pdfDoc, const page10 = pdfDoc.addPage([595.28, 841.89]);.split('=')[0].trim().split()[1], data, countPages);
+  countPages++;
     upTo53 = countPages;
 
     await addHeader(pdfDoc, page10, clientData, headerAssets); // Adiciona o cabeçalho
@@ -2910,6 +2919,7 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
   }
 
   const page12 = pdfDoc.addPage([595.28, 841.89]);
+  await addFooter(pdfDoc, const page12 = pdfDoc.addPage([595.28, 841.89]);.split('=')[0].trim().split()[1], data, countPages);
   countPages++;
 
   upTo54 = countPages;
@@ -3178,6 +3188,7 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
   await createRecommendationsPLHPages(pdfDoc, pagePLH, 50, 710, data);
 
   const page13 = pdfDoc.addPage([595.28, 841.89]);
+  await addFooter(pdfDoc, const page13 = pdfDoc.addPage([595.28, 841.89]);.split('=')[0].trim().split()[1], data, countPages);
   countPages++;
 
   upTo55 = countPages;
@@ -3308,6 +3319,7 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
   countPages++;
 
   const page14 = pdfDoc.addPage([595.28, 841.89]);
+  await addFooter(pdfDoc, const page14 = pdfDoc.addPage([595.28, 841.89]);.split('=')[0].trim().split()[1], data, countPages);
   countPages++;
 
   let upTo6 = countPages;
@@ -3378,12 +3390,12 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
 
   await drawIndentedJustifiedText(
     pageLimitationsOfReport,
-    `Para garantir a precisão e consistência nesta análise de risco da máquina, é fundamental que as informações fornecidas sejam corretas e confiáveis. O(a) Cleonis Batista Santos não assume responsabilidade por interpretações ou julgamentos baseados em dados incompletos ou imprecisos.\n
+    `Para garantir a precisão e consistência nesta análise de risco da máquina, é fundamental que as informações fornecidas sejam corretas e confiáveis. O(a) Thiago Wherman Candido Borges não assume responsabilidade por interpretações ou julgamentos baseados em dados incompletos ou imprecisos.\n
     Este relatório refere-se exclusivamente à inspeção periódica realizada em ${data.inspection.startDate} e aos ensaios nela descritos. Qualquer modificação no objeto desta inspeção, bem como o cumprimento das recomendações, é de inteira responsabilidade do proprietário, isentando o profissional habilitado de qualquer responsabilização. \n
     Aspectos como erros humanos e mau uso devido a práticas inadequadas, alimentação incorreta do equipamento, uso inadequado de materiais e inexperiência dos operadores não estão cobertos por este relatório. Da mesma forma, não são considerados neste documento os riscos associados a agentes químicos, biológicos, ergonômicos, radiações ionizantes, combustíveis ou inflamáveis, superfícies aquecidas, sistemas de exaustão, vibrações, ruído e calor.\n
     Caso o equipamento passe por qualquer tipo de intervenção, tanto nas partes sob pressão quanto nos acessórios listados neste Relatório, seus prazos de inspeção deverão ser reavaliados. Nunca devem ser realizados reparos ou serviços de solda nas partes pressurizadas sem a consulta prévia a um profissional habilitado ou ao fabricante.\n
     O profissional habilitado não se responsabiliza pelo uso inadequado do prontuário, sendo que os dados deste se aplicam exclusivamente ao equipamento identificado pelo número de série, placa de identificação, código e data de fabricação. \n 
-    Muitas das considerações aqui contidas são interpretações da regulamentação vigente. Apesar de todos os esforços para que as análises sejam o mais objetivas possível, algumas regulamentações podem exigir interpretações subjetivas por parte do profissional legalmente responsável por este documento. Portanto, eventuais divergências na interpretação desta regulamentação não devem ser vistas como omissão ou erro por parte do(a) Cleonis Batista Santos.`,
+    Muitas das considerações aqui contidas são interpretações da regulamentação vigente. Apesar de todos os esforços para que as análises sejam o mais objetivas possível, algumas regulamentações podem exigir interpretações subjetivas por parte do profissional legalmente responsável por este documento. Portanto, eventuais divergências na interpretação desta regulamentação não devem ser vistas como omissão ou erro por parte do(a) Thiago Wherman Candido Borges.`,
     50, // Margem esquerda
     640, // Posição inicial no eixo Y
     480, // Largura máxima
@@ -3397,6 +3409,7 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
   console.log("pagaina de limitações do relatório criada")
 
   const page15 = pdfDoc.addPage([595.28, 841.89]);
+  await addFooter(pdfDoc, const page15 = pdfDoc.addPage([595.28, 841.89]);.split('=')[0].trim().split()[1], data, countPages);
   countPages++;
 
   let upTo8 = countPages;
@@ -3725,7 +3738,7 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
     opacity: 1,
   });
 
-  const text1 = "Resp. Téc Cleonis Batista Santos";
+  const text1 = "Resp. Téc Thiago Wherman Candido Borges";
   const text1Width = helveticaFont.widthOfTextAtSize(text1, 12); // Largura do texto
   const text1X = (pageWidth - text1Width) / 2; // Centralizado
   page15.drawText(text1, {
