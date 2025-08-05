@@ -1461,7 +1461,8 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
     y -= lineHeightSumario;
   });
 
-  await addFooter(pdfDoc, sumarioPage, data, 2);
+  await addFooter(pdfDoc, sumarioPage, data, countPages);
+  countPages++;
 
   countPages++;
 
@@ -3361,6 +3362,7 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
 
   await addHeader(pdfDoc, page14, clientData, headerAssets); // Adiciona o cabeçalho
 
+  registrarSecaoSumario("6. RECOMENDAÇÕES ADICIONAIS", countPages);
   page14.drawText("6. RECOMENDAÇÕES ADICIONAIS", {
     x: 50,
     y: 700,
