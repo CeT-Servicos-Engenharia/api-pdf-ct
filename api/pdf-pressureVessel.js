@@ -457,12 +457,7 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
     font: helveticaBoldFont,
   });
   registrarSecaoSumario("1.1 DADOS CADASTRAIS", countPages);
-  page2.drawText("1.1 DADOS CADASTRAIS", {
-    x: 50,
-    y: 664,
-    size: 16,
-    font: helveticaBoldFont,
-  });
+  page2.drawText("1.1 DADOS CADASTRAIS.....................................................................2", { x: 50, y, size: 10, font: helveticaFont });
 
   const columnWidths = [247.64, 247.64]; // Largura das colunas
   const rowHeight = 98;
@@ -615,12 +610,7 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
   );
 
   registrarSecaoSumario("1.2 RESPONSÁVEIS TÉCNICOS", countPages);
-  page2.drawText("1.2 RESPONSÁVEIS TÉCNICOS", {
-    x: 50,
-    y: 510,
-    size: 16,
-    font: helveticaBoldFont,
-  });
+  page2.drawText("1.2 RESPONSÁVEIS TÉCNICOS................................................................2", { x: 50, y, size: 10, font: helveticaFont });
 
   const tableDataTechnicalManagers = [
     ["ANALISTA", "ENGENHEIRO"], // Cabeçalho
@@ -718,12 +708,7 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
   );
 
   registrarSecaoSumario("1.3 CONTROLE DE REVISÃO", countPages);
-  page2.drawText("1.3 CONTROLE DE REVISÃO", {
-    x: 50,
-    y: 415,
-    size: 16,
-    font: helveticaBoldFont,
-  });
+  page2.drawText("1.3 CONTROLE DE REVISÃO..................................................................2", { x: 50, y, size: 10, font: helveticaFont });
 
   const tableDataRevisionControl = [
     ["REVISÃO", "DESCRIÇÃO", "RESPONSÁVEL", "DATA"],
@@ -827,12 +812,7 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
   );
 
   registrarSecaoSumario("1.4 INSPEÇÕES CONTRATADAS", countPages);
-  page2.drawText("1.4 INSPEÇÕES CONTRATADAS", {
-    x: 50,
-    y: 330,
-    size: 16,
-    font: helveticaBoldFont,
-  });
+  page2.drawText("1.4 INSPEÇÕES CONTRATADAS................................................................2", { x: 50, y, size: 10, font: helveticaFont });
 
   const tableDataContractedInspections = [
     ["TIPO", "CARACTERÍSTICA", "DATA INÍCIO", "DATA TÉRMINO"],
@@ -1433,36 +1413,7 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
   console.log("Concluindo pagina 5")
   await addFooter(pdfDoc, page5, data, countPages);
 
-  // Inserir página de sumário após o conteúdo
-  const sumarioPage = pdfDoc.insertPage(1, [595.28, 841.89]);
-  await addHeader(pdfDoc, sumarioPage, clientData, headerAssets);
-
-  sumarioPage.drawText("SUMÁRIO", {
-    x: 50,
-    y: 750,
-    size: 20,
-    font: helveticaBoldFont,
-  });
-
-  let y = 720;
-  const lineHeightSumario = 18;
-
-  const secoesOrdenadas = Object.entries(sumarioMap).sort(
-    ([a], [b]) => a.localeCompare(b, 'pt', { numeric: true })
-  );
-
-  secoesOrdenadas.forEach(([titulo, pagina]) => {
-    sumarioPage.drawText(`${titulo}${'.'.repeat(80 - titulo.length - pagina.toString().length)}${pagina}`, {
-      x: 50,
-      y,
-      size: 12,
-      font: helveticaFont,
-    });
-    y -= lineHeightSumario;
-  });
-
-  await addFooter(pdfDoc, sumarioPage, data, countPages);
-  countPages++;
+  
 
   countPages++;
 
