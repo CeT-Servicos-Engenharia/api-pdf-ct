@@ -1445,7 +1445,7 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
   });
 
   let y = 720;
-  const lineHeight = 18;
+  const lineHeightSumario = 18;
 
   const secoesOrdenadas = Object.entries(sumarioMap).sort(
     ([a], [b]) => a.localeCompare(b, 'pt', { numeric: true })
@@ -1458,7 +1458,7 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
       size: 12,
       font: helveticaFont,
     });
-    y -= lineHeight;
+    y -= lineHeightSumario;
   });
 
   await addFooter(pdfDoc, sumarioPage, data, 2);
