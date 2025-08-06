@@ -3929,8 +3929,8 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
     pdfDoc.removePage(totalPages - 1);
   }
 
-  // Sumário não deve ter rodapé com numeração
-  // await addFooter(pdfDoc, pageSumary, data, 2);
+  // Adicionar rodapé ao sumário
+  await addFooter(pdfDoc, pageSumary, data);
 
   console.log("Quantidade de paginas no pdf: ", countPages);
 
