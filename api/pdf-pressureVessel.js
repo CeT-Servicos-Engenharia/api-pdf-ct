@@ -223,6 +223,8 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
 
   console.log("Começando pagina 1")
   const page = pdfDoc.addPage([595.28, 841.89]);
+  countPages++;
+
   async function addHeader(pdfDoc, page, clientData, assets) {
     try {
       // Desestrutura os recursos carregados anteriormente
@@ -292,7 +294,8 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
     const formattedDate = data.inspection.endDate ? formatDate(data.inspection.endDate) : "N/A";
 
     const footerTextStart = `${data.numeroProjeto || " "}\nART:${data.artProjeto}`;
-    const footerTextMiddle = `Eng. Mec. Cleonis Batista Santos\nEng. Mec. Seg. Thiago Wherman Candido Borges`;
+    const footerTextMiddle = `Eng. Mec. Cleonis Batista Santos
+Eng. Mec. Seg. Thiago Wherman Candido Borges
     const footerTextEnd = `C&T.0.1 | ${data.inspection.endDate}\nPágina ${pageNumber}`;
 
     const drawMultilineText = (text, x, y, lineHeight) => {
@@ -435,6 +438,8 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
 
   console.log("Começando pagina 2")
   const page2 = pdfDoc.addPage([595.28, 841.89]);
+  countPages++;
+
   let upTo14 = countPages;
 
   await addHeader(pdfDoc, page2, clientData, headerAssets);
@@ -445,7 +450,7 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
     size: 24,
     font: helveticaBoldFont,
   });
-  page2.drawText("1.1 DADOS CADASTRAIS.....................................................................2", {
+  page2.drawText("1.1 DADOS CADASTRAIS", {
     x: 50,
     y: 664,
     size: 16,
@@ -602,7 +607,7 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
     helveticaBoldFont
   );
 
-  page2.drawText("1.2 RESPONSÁVEIS TÉCNICOS................................................................2", {
+  page2.drawText("1.2 RESPONSÁVEIS TÉCNICOS", {
     x: 50,
     y: 510,
     size: 16,
@@ -704,7 +709,7 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
     helveticaBoldFont
   );
 
-  page2.drawText("1.3 CONTROLE DE REVISÃO..................................................................2", {
+  page2.drawText("1.3 CONTROLE DE REVISÃO", {
     x: 50,
     y: 415,
     size: 16,
@@ -812,7 +817,7 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
     helveticaBoldFont
   );
 
-  page2.drawText("1.4 INSPEÇÕES CONTRATADAS................................................................2", {
+  page2.drawText("1.4 INSPEÇÕES CONTRATADAS", {
     x: 50,
     y: 330,
     size: 16,
@@ -944,8 +949,11 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
 
   console.log("Concluindo pagina 2")
   await addFooter(pdfDoc, page2, data, countPages);
-  countPages++;console.log("Começando pagina 3")
+
+  console.log("Começando pagina 3")
   const page3 = pdfDoc.addPage([595.28, 841.89]);
+  countPages++;
+
   let upTo15 = countPages;
 
   await addHeader(pdfDoc, page3, clientData, headerAssets);
@@ -1154,8 +1162,11 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
 
   console.log("Concluindo pagina 3")
   await addFooter(pdfDoc, page3, data, countPages);
-  countPages++;console.log("Começando pagina 4")
+
+  console.log("Começando pagina 4")
   const page4 = pdfDoc.addPage([595.28, 841.89]);
+  countPages++;
+
   let upTo18 = countPages;
 
   await addHeader(pdfDoc, page4, clientData, headerAssets);
@@ -1267,8 +1278,11 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
 
   console.log("Concluindo pagina 4")
   await addFooter(pdfDoc, page4, data, countPages);
-  countPages++;console.log("Começando pagina 5")
+
+  console.log("Começando pagina 5")
   const page5 = pdfDoc.addPage([595.28, 841.89]);
+  countPages++;
+
   let upTo19 = countPages;
 
   await addHeader(pdfDoc, page5, clientData, headerAssets);
@@ -1372,6 +1386,7 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
     for (const row of tableData) {
       if (currentY - rowHeight < margin) {
         currentPage = pdfDoc.addPage();
+        countPages++;
         console.log(
           "Dados do cliente antes de carregar o cabeçalho:",
           clientData
@@ -1403,7 +1418,9 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
 
   console.log("Concluindo pagina 5")
   await addFooter(pdfDoc, page5, data, countPages);
-  countPages++;console.log("Começando pagina 7")
+countPages++;
+
+  console.log("Começando pagina 7")
   const page7 = pdfDoc.addPage([595.28, 841.89]);
 
 
@@ -1576,13 +1593,17 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
   }
 
   await addFooter(pdfDoc, page7, data, countPages);
-  countPages++;console.log("pagina 7 criada")
+  console.log("pagina 7 criada")
 
-  let upTo51 = async function generateDevicesPDF(pdfDoc, devicesData) {
+  let upTo51 = countPages++;
+
+  async function generateDevicesPDF(pdfDoc, devicesData) {
     for (const [index, device] of Object.entries(devicesData || {})) {
       const pageWidth = 595.28;
       const pageHeight = 841.89;
       const page8 = pdfDoc.addPage([pageWidth, pageHeight]);
+      countPages++;
+
       await addHeader(pdfDoc, page8, clientData, headerAssets);
 
       page8.drawText("5. CARACTERIZAÇÃO", {
@@ -1682,13 +1703,15 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
           cursorY -= textHeight;
         });
       await addFooter(pdfDoc, page8, data, countPages);
-  countPages++;}
+    }
   }
 
   // Gera o PDF para dispositivos
   await generateDevicesPDF(pdfDoc, data.inspection.devicesData);
 
   const page9 = pdfDoc.addPage([595.28, 841.89]);
+  countPages++;
+
   let upTo52 = countPages;
 
   await addHeader(pdfDoc, page9, clientData, headerAssets);
@@ -1916,6 +1939,7 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
           // Adiciona espaço após cada medição
           if (currentY < 340) {
             page9 = pdfDoc.addPage();
+            countPages++;
             addHeader(pdfDoc, page9, clientData, headerAssets);
             page9.drawText("5.2 MAPA DE MEDIÇÃO", {
               x: 50,
@@ -1927,7 +1951,7 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
           }
         });
       await addFooter(pdfDoc, page9, data, countPages);
-  countPages++;}
+    }
   }
 
   await addInspectionDataToPDF(
@@ -1959,6 +1983,7 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
 
   if (hasEquipmentBodyData(data)) {
     const page10 = pdfDoc.addPage([595.28, 841.89]);
+    countPages++;
     upTo53 = countPages;
 
     await addHeader(pdfDoc, page10, clientData, headerAssets); // Adiciona o cabeçalho
@@ -2881,11 +2906,13 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
     )
 
     await addFooter(pdfDoc, page10, data, countPages);
-  countPages++;} else {
+  } else {
     console.log("Página 5.3 não criada por falta de dados do corpo do equipamento")
   }
 
   const page12 = pdfDoc.addPage([595.28, 841.89]);
+  countPages++;
+
   upTo54 = countPages;
 
   await addHeader(pdfDoc, page12, clientData, headerAssets); // Adiciona o cabeçalho
@@ -3001,6 +3028,7 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
       // Verifica se é necessário criar uma nova página
       if (currentY <= 80) {
         page = pdfDoc.addPage([595.28, 841.89]);
+        countPages++;
         await addHeader(pdfDoc, page, clientData, headerAssets); // Adiciona o cabeçalho do documento
         currentY = maxHeight;
 
@@ -3019,6 +3047,8 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
   await createRecommendationsPages(pdfDoc, page12, 50, 690, data);
 
   const pagePLH = pdfDoc.addPage([595.28, 841.89]);
+  countPages++;
+
   await addHeader(pdfDoc, pagePLH, clientData, headerAssets);
 
   async function createRecommendationsPLHPages(
@@ -3130,6 +3160,7 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
       // Verifica se é necessário criar uma nova página
       if (currentY <= 80) {
         page = pdfDoc.addPage([595.28, 841.89]);
+        countPages++;
         await addHeader(pdfDoc, page, clientData, headerAssets); // Adiciona o cabeçalho do documento
         currentY = maxHeight;
 
@@ -3148,6 +3179,8 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
   await createRecommendationsPLHPages(pdfDoc, pagePLH, 50, 710, data);
 
   const page13 = pdfDoc.addPage([595.28, 841.89]);
+  countPages++;
+
   upTo55 = countPages;
 
   await addHeader(pdfDoc, page13, clientData, headerAssets);
@@ -3273,7 +3306,11 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
   countPages = countPagesRef.value;
 
   await addFooter(pdfDoc, page13, data, (countPages - 2));
+  countPages++;
+
   const page14 = pdfDoc.addPage([595.28, 841.89]);
+  countPages++;
+
   let upTo6 = countPages;
 
   await addHeader(pdfDoc, page14, clientData, headerAssets); // Adiciona o cabeçalho
@@ -3324,9 +3361,11 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
   );
 
   await addFooter(pdfDoc, page14, data, countPages);
-  countPages++;console.log("pagina 14 criada")
+  console.log("pagina 14 criada")
 
   const pageLimitationsOfReport = pdfDoc.addPage([595.28, 841.89]);
+  countPages++;
+
   let upTo7 = countPages;
 
   await addHeader(pdfDoc, pageLimitationsOfReport, clientData, headerAssets);
@@ -3359,6 +3398,8 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
   console.log("pagaina de limitações do relatório criada")
 
   const page15 = pdfDoc.addPage([595.28, 841.89]);
+  countPages++;
+
   let upTo8 = countPages;
 
   await addHeader(pdfDoc, page15, clientData, headerAssets);
@@ -3718,7 +3759,7 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
   });
 
   await addFooter(pdfDoc, page15, data, countPages);
-  countPages++;console.log("Ultima pagina criada")
+  console.log("Ultima pagina criada")
 
   const pageSumary = pdfDoc.addPage([595.28, 841.89]);
   await addHeader(pdfDoc, pageSumary, clientData, headerAssets);
