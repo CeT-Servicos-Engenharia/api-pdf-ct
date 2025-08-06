@@ -116,8 +116,6 @@ async function addFirebaseImageToPDF(pdfDoc, page, imageUrl, options = {}) {
 }
 
 
-let countPages = 0;
-
 async function fetchImage(url) {
   try {
     const response = await fetch(url);
@@ -191,6 +189,9 @@ async function getAnalystData(analystId) {
 }
 
 async function generatePDF(data, clientData, engenieerData, analystData) {
+  // Resetar contador de páginas a cada geração
+  let countPages = 0;
+  
   const pdfDoc = await PDFDocument.create();
 
   const logoPath = path.resolve(__dirname, "../assets/CET LOGO - TRANSPARENCIA(1).png");
@@ -1604,19 +1605,32 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
 
       await addHeader(pdfDoc, page8, clientData, headerAssets);
 
-      page8.drawText("5. CARACTERIZAÇÃO", {
-        x: 50,
-        y: 700,
-        size: 24,
-        font: helveticaBoldFont,
-      });
-      page8.drawText("5.1 DISPOSITIVOS", {
-        x: 50,
-        y: 664,
-        size: 16,
-        font: helveticaBoldFont,
-      });
-      let cursorY = 640;
+      let cursorY;
+      // Apenas a primeira página de dispositivos deve ter o título principal
+      if (index == 0) {
+        page8.drawText("5. CARACTERIZAÇÃO", {
+          x: 50,
+          y: 700,
+          size: 24,
+          font: helveticaBoldFont,
+        });
+        page8.drawText("5.1 DISPOSITIVOS", {
+          x: 50,
+          y: 664,
+          size: 16,
+          font: helveticaBoldFont,
+        });
+        cursorY = 640;
+      } else {
+        // Páginas subsequentes só têm o subtítulo
+        page8.drawText("5.1 DISPOSITIVOS", {
+          x: 50,
+          y: 700,
+          size: 16,
+          font: helveticaBoldFont,
+        });
+        cursorY = 670;
+      }
 
       const deviceType =
         device["Tipo de dispositivo"]?.toUpperCase() || "TIPO NÃO ESPECIFICADO";
