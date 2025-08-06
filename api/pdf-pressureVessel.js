@@ -3910,20 +3910,19 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
       // Pular primeira página (capa) e segunda página (sumário)
       if (i === 0 || i === 1) continue;
       
-      // Redesenhar o número da página no rodapé
-      const formattedDate = data.inspection.endDate ? formatDate(data.inspection.endDate) : "N/A";
-      const footerTextEnd = `C&T.0.1 | ${data.inspection.endDate}\nPágina ${pageNumber}`;
-      
-      // Apagar o número antigo (desenhar retângulo branco por cima)
+      // Apagar toda a área do rodapé direito onde fica a numeração
       page.drawRectangle({
-        x: 480,
-        y: 15,
-        width: 100,
-        height: 25,
+        x: 400,
+        y: 10,
+        width: 200,
+        height: 40,
         color: rgb(1, 1, 1), // Branco
       });
       
-      // Desenhar o número correto
+      // Redesenhar apenas o texto correto da numeração
+      const formattedDate = data.inspection.endDate ? formatDate(data.inspection.endDate) : "N/A";
+      const footerTextEnd = `C&T.0.1 | ${data.inspection.endDate}\nPágina ${pageNumber}`;
+      
       const lines = footerTextEnd.split("\n");
       lines.forEach((line, index) => {
         page.drawText(line, {
@@ -3954,7 +3953,8 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
     pdfDoc.removePage(totalPages - 1);
   }
 
-  await addFooter(pdfDoc, pageSumary, data, 2);
+  // Sumário não deve ter rodapé com numeração
+  // await addFooter(pdfDoc, pageSumary, data, 2);
 
   console.log("Quantidade de paginas no pdf: ", countPages);
 
