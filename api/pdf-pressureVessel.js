@@ -302,27 +302,15 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
       }
       const currentPageIndex = pages.indexOf(page);
       
-      // Página 0 (capa) não tem rodapé
-      if (currentPageIndex === 0) {
-        return; // Sair da função sem criar rodapé
-      }
-      // Página 1 (sumário) tem rodapé sem numeração
-      else if (currentPageIndex === 1) {
-        pageNumber = null; // Rodapé sem numeração
-      } 
-      // Páginas 2+ têm numeração começando em 3
-      else {
-        pageNumber = currentPageIndex + 1; // Página 3 (índice 2) = "Página 3"
-      }
+      // TODAS as páginas têm numeração sequencial (1, 2, 3, 4...)
+      pageNumber = currentPageIndex + 1;
     }
 
     const footerTextStart = `${data.numeroProjeto || " "}\nART:${data.artProjeto}`;
     const footerTextMiddle = `Eng. Mec. Cleonis Batista Santos\nEng. Mec. Seg. Thiago Wherman Candido Borges`;
     
-    // Só incluir numeração se pageNumber não for null
-    const footerTextEnd = pageNumber !== null 
-      ? `C&T.0.1 | ${data.inspection.endDate}\nPágina ${pageNumber}`
-      : `C&T.0.1 | ${data.inspection.endDate}`;
+    // SEMPRE incluir numeração
+    const footerTextEnd = `C&T.0.1 | ${data.inspection.endDate}\nPágina ${pageNumber}`;
 
     const drawMultilineText = (text, x, y, lineHeight) => {
       const lines = text.split("\n");
