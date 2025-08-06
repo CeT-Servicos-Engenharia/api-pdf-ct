@@ -3937,6 +3937,26 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
   // Isso garante numeração sequencial correta sem sobreposição
   for (let i = 0; i < pdfDoc.getPageCount(); i++) {
     const page = pdfDoc.getPage(i);
+    
+    // Para páginas 3+ (índice 2+), limpar área da numeração antiga antes de redesenhar
+    if (i >= 2) {
+      const helveticaFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
+      const pageWidth = page.getWidth();
+      
+      // Calcular posição da numeração para limpeza precisa
+      const textWidthEnd = helveticaFont.widthOfTextAtSize("C&T.0.1 | " + data.inspection.endDate, 10);
+      const xEnd = pageWidth - textWidthEnd - 50;
+      
+      // Limpar APENAS a área da numeração (quadrado pequeno e preciso)
+      page.drawRectangle({
+        x: xEnd - 5, // Margem pequena à esquerda
+        y: 35, // Área específica da numeração
+        width: textWidthEnd + 60, // Largura suficiente para cobrir "C&T.0.1 | data\nPágina X"
+        height: 25, // Altura para cobrir 2 linhas da numeração
+        color: rgb(1, 1, 1), // Branco para apagar
+      });
+    }
+    
     await addFooter(pdfDoc, page, data, i + 1); // Numeração sequencial 1, 2, 3...
   }
 
