@@ -116,7 +116,7 @@ async function addFirebaseImageToPDF(pdfDoc, page, imageUrl, options = {}) {
 }
 
 
-let countPages = 1;
+let countPages = 0;
 
 async function fetchImage(url) {
   try {
@@ -294,8 +294,7 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
     const formattedDate = data.inspection.endDate ? formatDate(data.inspection.endDate) : "N/A";
 
     const footerTextStart = `${data.numeroProjeto || " "}\nART:${data.artProjeto}`;
-    const footerTextMiddle = `Eng. Mec. Cleonis Batista Santos
-Eng. Mec. Seg. Thiago Wherman Candido Borges
+    const footerTextMiddle = `Eng. Mec. Thiago Wherman Candido Borges\nEng. Mec. Seg. Thiago Wherman Candido Borges`;
     const footerTextEnd = `C&T.0.1 | ${data.inspection.endDate}\nPágina ${pageNumber}`;
 
     const drawMultilineText = (text, x, y, lineHeight) => {
@@ -311,7 +310,7 @@ Eng. Mec. Seg. Thiago Wherman Candido Borges
       });
     };
 
-    const textWidthMiddle = helveticaFont.widthOfTextAtSize("Cleonis Batista Santos", 10);
+    const textWidthMiddle = helveticaFont.widthOfTextAtSize("Thiago Wherman Candido Borges", 10);
     const textWidthEnd = helveticaFont.widthOfTextAtSize("C&T.0.1 | " + data.inspection.endDate, 10);
 
     const xStart = 50;
@@ -1418,7 +1417,7 @@ Eng. Mec. Seg. Thiago Wherman Candido Borges
 
   console.log("Concluindo pagina 5")
   await addFooter(pdfDoc, page5, data, countPages);
-countPages++;
+  countPages++;
 
   console.log("Começando pagina 7")
   const page7 = pdfDoc.addPage([595.28, 841.89]);
@@ -3379,12 +3378,12 @@ countPages++;
 
   await drawIndentedJustifiedText(
     pageLimitationsOfReport,
-    `Para garantir a precisão e consistência nesta análise de risco da máquina, é fundamental que as informações fornecidas sejam corretas e confiáveis. O(a) Cleonis Batista Santos não assume responsabilidade por interpretações ou julgamentos baseados em dados incompletos ou imprecisos.\n
+    `Para garantir a precisão e consistência nesta análise de risco da máquina, é fundamental que as informações fornecidas sejam corretas e confiáveis. O(a) Thiago Wherman Candido Borges não assume responsabilidade por interpretações ou julgamentos baseados em dados incompletos ou imprecisos.\n
     Este relatório refere-se exclusivamente à inspeção periódica realizada em ${data.inspection.startDate} e aos ensaios nela descritos. Qualquer modificação no objeto desta inspeção, bem como o cumprimento das recomendações, é de inteira responsabilidade do proprietário, isentando o profissional habilitado de qualquer responsabilização. \n
     Aspectos como erros humanos e mau uso devido a práticas inadequadas, alimentação incorreta do equipamento, uso inadequado de materiais e inexperiência dos operadores não estão cobertos por este relatório. Da mesma forma, não são considerados neste documento os riscos associados a agentes químicos, biológicos, ergonômicos, radiações ionizantes, combustíveis ou inflamáveis, superfícies aquecidas, sistemas de exaustão, vibrações, ruído e calor.\n
     Caso o equipamento passe por qualquer tipo de intervenção, tanto nas partes sob pressão quanto nos acessórios listados neste Relatório, seus prazos de inspeção deverão ser reavaliados. Nunca devem ser realizados reparos ou serviços de solda nas partes pressurizadas sem a consulta prévia a um profissional habilitado ou ao fabricante.\n
     O profissional habilitado não se responsabiliza pelo uso inadequado do prontuário, sendo que os dados deste se aplicam exclusivamente ao equipamento identificado pelo número de série, placa de identificação, código e data de fabricação. \n 
-    Muitas das considerações aqui contidas são interpretações da regulamentação vigente. Apesar de todos os esforços para que as análises sejam o mais objetivas possível, algumas regulamentações podem exigir interpretações subjetivas por parte do profissional legalmente responsável por este documento. Portanto, eventuais divergências na interpretação desta regulamentação não devem ser vistas como omissão ou erro por parte do(a) Cleonis Batista Santos.`,
+    Muitas das considerações aqui contidas são interpretações da regulamentação vigente. Apesar de todos os esforços para que as análises sejam o mais objetivas possível, algumas regulamentações podem exigir interpretações subjetivas por parte do profissional legalmente responsável por este documento. Portanto, eventuais divergências na interpretação desta regulamentação não devem ser vistas como omissão ou erro por parte do(a) Thiago Wherman Candido Borges.`,
     50, // Margem esquerda
     640, // Posição inicial no eixo Y
     480, // Largura máxima
@@ -3726,7 +3725,7 @@ countPages++;
     opacity: 1,
   });
 
-  const text1 = "Resp. Téc Cleonis Batista Santos";
+  const text1 = "Resp. Téc Thiago Wherman Candido Borges";
   const text1Width = helveticaFont.widthOfTextAtSize(text1, 12); // Largura do texto
   const text1X = (pageWidth - text1Width) / 2; // Centralizado
   page15.drawText(text1, {
@@ -3826,7 +3825,7 @@ countPages++;
     { title: "1.1 DADOS CADASTRAIS", page: Math.min(upTo14, pageCount) },
     { title: "1.2 RESPONSÁVEIS TÉCNICOS", page: Math.min(upTo14, pageCount) },
     { title: "1.3 CONTROLE DE REVISÃO", page: Math.min(upTo14, pageCount) },
-    { title: "1.4 INSPEÇÕES CONTARTADAS", page: Math.min(upTo14, pageCount) },
+    { title: "1.4 INSPEÇÕES CONTRATADAS", page: Math.min(upTo14, pageCount) },
     { title: "1.5 DADOS DO EQUIPAMENTO", page: Math.min(upTo15, pageCount) },
     { title: "1.6 CATEGORIZAÇÃO", page: Math.min(upTo18, pageCount) },
     { title: "1.7 PESSOAS QUE ACOMPANHARAM", page: Math.min(upTo18, pageCount) },
@@ -3834,7 +3833,6 @@ countPages++;
     { title: "2 DEFINIÇÃO", page: Math.min(upTo4, pageCount) },
     { title: "3 OBJETIVO", page: Math.min(upTo4, pageCount) },
     { title: "4 NORMAS", page: Math.min(upTo4, pageCount) },
-    { title: "5. CARACTERIZAÇÃO", page: Math.min(upTo51, pageCount) },
     ...generateDynamicSections(data),
     { title: "6. RECOMENDAÇÕES ADICIONAIS", page: Math.min(upTo6, pageCount) },
     { title: "7. LIMITAÇÕES DO RELATÓRIO", page: Math.min(upTo7, pageCount) },
