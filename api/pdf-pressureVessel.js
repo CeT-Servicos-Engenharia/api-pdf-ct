@@ -3377,12 +3377,12 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
 
   await drawIndentedJustifiedText(
     pageLimitationsOfReport,
-    `Para garantir a precisão e consistência nesta análise de risco da máquina, é fundamental que as informações fornecidas sejam corretas e confiáveis. O(a) Thiago Wherman Candido Borges não assume responsabilidade por interpretações ou julgamentos baseados em dados incompletos ou imprecisos.\n
+    `Para garantir a precisão e consistência nesta análise de risco da máquina, é fundamental que as informações fornecidas sejam corretas e confiáveis. O(a) Cleonis Batista Santos não assume responsabilidade por interpretações ou julgamentos baseados em dados incompletos ou imprecisos.\n
     Este relatório refere-se exclusivamente à inspeção periódica realizada em ${data.inspection.startDate} e aos ensaios nela descritos. Qualquer modificação no objeto desta inspeção, bem como o cumprimento das recomendações, é de inteira responsabilidade do proprietário, isentando o profissional habilitado de qualquer responsabilização. \n
     Aspectos como erros humanos e mau uso devido a práticas inadequadas, alimentação incorreta do equipamento, uso inadequado de materiais e inexperiência dos operadores não estão cobertos por este relatório. Da mesma forma, não são considerados neste documento os riscos associados a agentes químicos, biológicos, ergonômicos, radiações ionizantes, combustíveis ou inflamáveis, superfícies aquecidas, sistemas de exaustão, vibrações, ruído e calor.\n
     Caso o equipamento passe por qualquer tipo de intervenção, tanto nas partes sob pressão quanto nos acessórios listados neste Relatório, seus prazos de inspeção deverão ser reavaliados. Nunca devem ser realizados reparos ou serviços de solda nas partes pressurizadas sem a consulta prévia a um profissional habilitado ou ao fabricante.\n
     O profissional habilitado não se responsabiliza pelo uso inadequado do prontuário, sendo que os dados deste se aplicam exclusivamente ao equipamento identificado pelo número de série, placa de identificação, código e data de fabricação. \n 
-    Muitas das considerações aqui contidas são interpretações da regulamentação vigente. Apesar de todos os esforços para que as análises sejam o mais objetivas possível, algumas regulamentações podem exigir interpretações subjetivas por parte do profissional legalmente responsável por este documento. Portanto, eventuais divergências na interpretação desta regulamentação não devem ser vistas como omissão ou erro por parte do(a) Thiago Wherman Candido Borges.`,
+    Muitas das considerações aqui contidas são interpretações da regulamentação vigente. Apesar de todos os esforços para que as análises sejam o mais objetivas possível, algumas regulamentações podem exigir interpretações subjetivas por parte do profissional legalmente responsável por este documento. Portanto, eventuais divergências na interpretação desta regulamentação não devem ser vistas como omissão ou erro por parte do(a) Cleonis Batista Santos.`,
     50, // Margem esquerda
     640, // Posição inicial no eixo Y
     480, // Largura máxima
@@ -3877,29 +3877,9 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
     yPosition -= lineHeightSumary;
   });
 
-  // Adicionar sumário no final ao invés de inserir na posição 1
-  // pdfDoc.insertPage(summaryIndex, pageSumary);
-  
-  // Mover o sumário para a segunda posição após criação
-  const pages = [];
-  for (let i = 0; i < pdfDoc.getPageCount(); i++) {
-    pages.push(pdfDoc.getPage(i));
-  }
-  
-  // Reorganizar: primeira página, sumário, depois o resto
-  const firstPage = pages[0];
-  const otherPages = pages.slice(1, -1); // Todas exceto primeira e última (sumário)
-  const summaryPage = pages[pages.length - 1]; // O sumário que acabamos de adicionar
-  
-  // Remover todas as páginas
-  while (pdfDoc.getPageCount() > 0) {
-    pdfDoc.removePage(0);
-  }
-  
-  // Adicionar na ordem correta
-  pdfDoc.addPage(firstPage);
-  pdfDoc.addPage(summaryPage);
-  otherPages.forEach(page => pdfDoc.addPage(page));
+  // Inserir sumário na posição 1 (segunda página)
+  const summaryIndex = 1;
+  pdfDoc.insertPage(summaryIndex, pageSumary);
 
   // Adicione esta função de utilidade
   function validatePageCount(pdfDoc, countPages) {
