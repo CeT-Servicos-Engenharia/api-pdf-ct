@@ -3940,47 +3940,36 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
       const page = pdfDoc.getPage(i);
       const pageWidth = page.getWidth();
       
-      // Pular capa (página 1, índice 0) - sem rodapé
-      if (i === 0) continue;
+      // IMPORTANTE: NÃO limpar área - usar fundo transparente para não sobrepor conteúdo
+      // Quando o sumário é gerado (último passo) e a numeração é redesenhada,
+      // ela deve ter fundo transparente para não interferir no documento
       
-      // Limpar área do rodapé direito (onde fica a numeração)
-      page.drawRectangle({
-        x: pageWidth - 200,
-        y: 30,
-        width: 200,
-        height: 40,
-        color: rgb(1, 1, 1), // Branco para apagar
-      });
+      // Numeração sequencial para TODAS as páginas (1, 2, 3, 4...)
+      const pageNumber = i + 1;
       
-      // Recalcular numeração baseada na posição atual
-      let pageNumber;
-      if (i === 1) {
-        // Página 2 (sumário) - sem numeração
-        pageNumber = null;
-      } else {
-        // Páginas 3+ - numeração sequencial
-        pageNumber = i + 1;
-      }
+      // Redesenhar numeração com posicionamento ajustado para evitar sobreposição
+      const footerTextEnd = `C&T.0.1 | ${data.inspection.endDate}\nPágina ${pageNumber}`;
+      const textWidthEnd = helveticaFont.widthOfTextAtSize("C&T.0.1 | " + data.inspection.endDate, 10);
       
-      // Redesenhar apenas a parte da numeração se necessário
-      if (pageNumber !== null) {
-        const footerTextEnd = `C&T.0.1 | ${data.inspection.endDate}\nPágina ${pageNumber}`;
-        const textWidthEnd = helveticaFont.widthOfTextAtSize("C&T.0.1 | " + data.inspection.endDate, 10);
-        const xEnd = pageWidth - textWidthEnd - 50;
-        const baseY = 50;
-        const lineHeight = 12;
-        
-        const lines = footerTextEnd.split("\n");
-        lines.forEach((line, index) => {
-          page.drawText(line, {
-            x: xEnd,
-            y: baseY - index * lineHeight,
-            size: 10,
-            font: helveticaFont,
-            color: rgb(0.5, 0.5, 0.5),
-          });
+      // Ajustar posição X para evitar sobreposição (mais à direita)
+      const xEnd = pageWidth - textWidthEnd - 30; // Reduzido de 50 para 30
+      
+      // Ajustar posição Y para ficar mais baixo e evitar conflito
+      const baseY = 35; // Reduzido de 50 para 35
+      const lineHeight = 12;
+      
+      const lines = footerTextEnd.split("\n");
+      lines.forEach((line, index) => {
+        page.drawText(line, {
+          x: xEnd,
+          y: baseY - index * lineHeight,
+          size: 10,
+          font: helveticaFont,
+          color: rgb(0.5, 0.5, 0.5),
+          // FUNDO TRANSPARENTE: Sem drawRectangle para não sobrepor conteúdo
+          // Isso garante que a numeração não interfira visualmente no documento
         });
-      }
+      });
     }
   }
   
