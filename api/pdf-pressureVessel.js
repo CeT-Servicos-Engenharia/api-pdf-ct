@@ -294,7 +294,7 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
     const formattedDate = data.inspection.endDate ? formatDate(data.inspection.endDate) : "N/A";
 
     const footerTextStart = `${data.numeroProjeto || " "}\nART:${data.artProjeto}`;
-    const footerTextMiddle = `Eng. Mec. Thiago Wherman Candido Borges\nEng. Mec. Seg. Thiago Wherman Candido Borges`;
+    const footerTextMiddle = `Eng. Mec. Cleonis Batista Santos\nEng. Mec. Seg. Thiago Wherman Candido Borges`;
     const footerTextEnd = `C&T.0.1 | ${data.inspection.endDate}\nPágina ${pageNumber}`;
 
     const drawMultilineText = (text, x, y, lineHeight) => {
@@ -310,7 +310,7 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
       });
     };
 
-    const textWidthMiddle = helveticaFont.widthOfTextAtSize("Thiago Wherman Candido Borges", 10);
+    const textWidthMiddle = helveticaFont.widthOfTextAtSize("Cleonis Batista Santos", 10);
     const textWidthEnd = helveticaFont.widthOfTextAtSize("C&T.0.1 | " + data.inspection.endDate, 10);
 
     const xStart = 50;
@@ -471,14 +471,13 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
         CNPJ: ${clientData.cnpj || " "} \n
         TEL.: ${clientData.phone || " "} \n
         E-mail: ${clientData.email || " "}`,
-      ` ${engenieerData.name || " "} \n
-        ${engenieerData.address || " "}, ${engenieerData.neighborhood || " "
-      }, ${engenieerData.number || " "} \n
-        CEP: ${engenieerData.cep || " "} \n
-        CNPJ: ${engenieerData.cnpj || " "} \n
-        CREA: ${engenieerData.crea || " "} \n
-        TEL.: ${engenieerData.phone || " "} \n
-        E-mail: ${engenieerData.email || " "}`,
+      ` Cleonis Batista Santos \n
+        Rua Laudemiro José Bueno, Centro, 192 \n
+        CEP: 75901130 \n
+        CNPJ: 28992646000111 \n
+        CREA: 24625/ D-GO \n
+        TEL.: 64992442480 \n
+        E-mail: cleonis@engenhariact.com.br`,
     ],
   ];
 
@@ -3878,8 +3877,29 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
     yPosition -= lineHeightSumary;
   });
 
-  const summaryIndex = 1;
-  pdfDoc.insertPage(summaryIndex, pageSumary);
+  // Adicionar sumário no final ao invés de inserir na posição 1
+  // pdfDoc.insertPage(summaryIndex, pageSumary);
+  
+  // Mover o sumário para a segunda posição após criação
+  const pages = [];
+  for (let i = 0; i < pdfDoc.getPageCount(); i++) {
+    pages.push(pdfDoc.getPage(i));
+  }
+  
+  // Reorganizar: primeira página, sumário, depois o resto
+  const firstPage = pages[0];
+  const otherPages = pages.slice(1, -1); // Todas exceto primeira e última (sumário)
+  const summaryPage = pages[pages.length - 1]; // O sumário que acabamos de adicionar
+  
+  // Remover todas as páginas
+  while (pdfDoc.getPageCount() > 0) {
+    pdfDoc.removePage(0);
+  }
+  
+  // Adicionar na ordem correta
+  pdfDoc.addPage(firstPage);
+  pdfDoc.addPage(summaryPage);
+  otherPages.forEach(page => pdfDoc.addPage(page));
 
   // Adicione esta função de utilidade
   function validatePageCount(pdfDoc, countPages) {
