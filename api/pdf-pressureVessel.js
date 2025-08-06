@@ -302,12 +302,17 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
       }
       const currentPageIndex = pages.indexOf(page);
       
-      // Página 0 (capa) e página 1 (sumário) não têm numeração
-      if (currentPageIndex === 0 || currentPageIndex === 1) {
-        pageNumber = null; // Sem numeração
-      } else {
-        // A numeração começa em 2 para a página de índice 2 (terceira página)
-        pageNumber = currentPageIndex; // Página 3 (índice 2) = "Página 2"
+      // Página 0 (capa) não tem rodapé
+      if (currentPageIndex === 0) {
+        return; // Sair da função sem criar rodapé
+      }
+      // Página 1 (sumário) tem rodapé sem numeração
+      else if (currentPageIndex === 1) {
+        pageNumber = null; // Rodapé sem numeração
+      } 
+      // Páginas 2+ têm numeração começando em 3
+      else {
+        pageNumber = currentPageIndex + 1; // Página 3 (índice 2) = "Página 3"
       }
     }
 
