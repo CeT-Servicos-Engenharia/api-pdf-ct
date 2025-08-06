@@ -3894,6 +3894,47 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
   // Inserir sumário na posição 1 (segunda página)
   const summaryIndex = 1;
   pdfDoc.insertPage(summaryIndex, pageSumary);
+  
+  // Atualizar numeração das páginas após inserção do sumário
+  await updatePageNumbers(pdfDoc, data);
+
+  // Função para atualizar numeração das páginas
+  async function updatePageNumbers(pdfDoc, data) {
+    const helveticaFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
+    const totalPages = pdfDoc.getPageCount();
+    
+    for (let i = 0; i < totalPages; i++) {
+      const page = pdfDoc.getPage(i);
+      const pageNumber = i + 1;
+      
+      // Pular primeira página (capa) e segunda página (sumário)
+      if (i === 0 || i === 1) continue;
+      
+      // Redesenhar o número da página no rodapé
+      const formattedDate = data.inspection.endDate ? formatDate(data.inspection.endDate) : "N/A";
+      const footerTextEnd = `C&T.0.1 | ${data.inspection.endDate}\nPágina ${pageNumber}`;
+      
+      // Apagar o número antigo (desenhar retângulo branco por cima)
+      page.drawRectangle({
+        x: 480,
+        y: 15,
+        width: 100,
+        height: 25,
+        color: rgb(1, 1, 1), // Branco
+      });
+      
+      // Desenhar o número correto
+      const lines = footerTextEnd.split("\n");
+      lines.forEach((line, index) => {
+        page.drawText(line, {
+          x: 480,
+          y: 25 - index * 12,
+          size: 10,
+          font: helveticaFont,
+        });
+      });
+    }
+  }
 
   // Adicione esta função de utilidade
   function validatePageCount(pdfDoc, countPages) {
