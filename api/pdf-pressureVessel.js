@@ -289,14 +289,34 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
     }
   }
 
-  async function addFooter(pdfDoc, page, data, pageNumber) {
+  async function addFooter(pdfDoc, page, data, pageNumber = null) {
     const helveticaFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
     const pageWidth = page.getWidth(); // Obtém a largura da página
     const formattedDate = data.inspection.endDate ? formatDate(data.inspection.endDate) : "N/A";
 
+    // Se pageNumber não foi fornecido, calcular automaticamente baseado na posição da página
+    if (pageNumber === null) {
+      const pages = [];
+      for (let i = 0; i < pdfDoc.getPageCount(); i++) {
+        pages.push(pdfDoc.getPage(i));
+      }
+      const currentPageIndex = pages.indexOf(page);
+      
+      // Página 0 (capa) e página 1 (sumário) não têm numeração
+      if (currentPageIndex === 0 || currentPageIndex === 1) {
+        pageNumber = null; // Sem numeração
+      } else {
+        pageNumber = currentPageIndex + 1; // Numeração baseada na posição atual
+      }
+    }
+
     const footerTextStart = `${data.numeroProjeto || " "}\nART:${data.artProjeto}`;
     const footerTextMiddle = `Eng. Mec. Cleonis Batista Santos\nEng. Mec. Seg. Thiago Wherman Candido Borges`;
-    const footerTextEnd = `C&T.0.1 | ${data.inspection.endDate}\nPágina ${pageNumber}`;
+    
+    // Só incluir numeração se pageNumber não for null
+    const footerTextEnd = pageNumber !== null 
+      ? `C&T.0.1 | ${data.inspection.endDate}\nPágina ${pageNumber}`
+      : `C&T.0.1 | ${data.inspection.endDate}`;
 
     const drawMultilineText = (text, x, y, lineHeight) => {
       const lines = text.split("\n");
@@ -434,7 +454,7 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
   const formattedDate = data.endDate ? formatDate(data.endDate) : "N/A";
 
   console.log("Concluindo pagina 1")
-  await addFooter(pdfDoc, page, data, countPages);
+  await addFooter(pdfDoc, page, data);
 
   console.log("Começando pagina 2")
   const page2 = pdfDoc.addPage([595.28, 841.89]);
@@ -947,7 +967,7 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
   console.log("Imagens gerais: ", data.images);
 
   console.log("Concluindo pagina 2")
-  await addFooter(pdfDoc, page2, data, countPages);
+  await addFooter(pdfDoc, page2, data);
 
   console.log("Começando pagina 3")
   const page3 = pdfDoc.addPage([595.28, 841.89]);
@@ -1160,7 +1180,7 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
   });
 
   console.log("Concluindo pagina 3")
-  await addFooter(pdfDoc, page3, data, countPages);
+  await addFooter(pdfDoc, page3, data);
 
   console.log("Começando pagina 4")
   const page4 = pdfDoc.addPage([595.28, 841.89]);
@@ -1276,7 +1296,7 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
   });
 
   console.log("Concluindo pagina 4")
-  await addFooter(pdfDoc, page4, data, countPages);
+  await addFooter(pdfDoc, page4, data);
 
   console.log("Começando pagina 5")
   const page5 = pdfDoc.addPage([595.28, 841.89]);
@@ -1396,7 +1416,7 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
       }
       await drawRow(row); // Usar await para garantir que células assíncronas sejam resolvidas
     }
-    await addFooter(pdfDoc, currentPage, data, countPages);
+    await addFooter(pdfDoc, currentPage, data);
   }
 
   await drawPaginatedTable({
@@ -1416,7 +1436,7 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
   });
 
   console.log("Concluindo pagina 5")
-  await addFooter(pdfDoc, page5, data, countPages);
+  await addFooter(pdfDoc, page5, data);
   countPages++;
 
   console.log("Começando pagina 7")
@@ -1591,7 +1611,7 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
     currentY -= rowHeight; // Ajusta a posição Y para a próxima linha
   }
 
-  await addFooter(pdfDoc, page7, data, countPages);
+  await addFooter(pdfDoc, page7, data);
   console.log("pagina 7 criada")
 
   let upTo51 = countPages++;
@@ -1714,7 +1734,7 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
 
           cursorY -= textHeight;
         });
-      await addFooter(pdfDoc, page8, data, countPages);
+      await addFooter(pdfDoc, page8, data);
     }
   }
 
@@ -1946,7 +1966,7 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
             currentY -= 20;
           }
 
-          addFooter(pdfDoc, page9, data, countPages);
+          addFooter(pdfDoc, page9, data);
 
           // Adiciona espaço após cada medição
           if (currentY < 340) {
@@ -1962,7 +1982,7 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
             currentY = startY;
           }
         });
-      await addFooter(pdfDoc, page9, data, countPages);
+      await addFooter(pdfDoc, page9, data);
     }
   }
 
@@ -2917,7 +2937,7 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
       }
     )
 
-    await addFooter(pdfDoc, page10, data, countPages);
+    await addFooter(pdfDoc, page10, data);
   } else {
     console.log("Página 5.3 não criada por falta de dados do corpo do equipamento")
   }
@@ -3052,7 +3072,7 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
       // Adiciona a linha e calcula o espaço ocupado
       const usedHeight = drawRow(startX, currentY, label);
       currentY -= usedHeight; // Remove qualquer margem adicional
-      await addFooter(pdfDoc, page, data, countPages);
+      await addFooter(pdfDoc, page, data);
     }
   }
 
@@ -3184,7 +3204,7 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
       // Adiciona a linha e calcula o espaço ocupado
       const usedHeight = drawRow(startX, currentY, validLabel);
       currentY -= usedHeight; // Remove qualquer margem adicional
-      await addFooter(pdfDoc, page, data, countPages);
+      await addFooter(pdfDoc, page, data);
     }
   }
 
@@ -3286,7 +3306,7 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
         currentX = startX;
         currentY = startY - headerHeight - padding;
         imageCount = 0;
-        addFooter(pdfDoc, page, data, countPagesRef.value);
+        addFooter(pdfDoc, page, data);
       }
     }
   }
@@ -3317,7 +3337,7 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
 
   countPages = countPagesRef.value;
 
-  await addFooter(pdfDoc, page13, data, (countPages - 2));
+  await addFooter(pdfDoc, page13, data);
   countPages++;
 
   const page14 = pdfDoc.addPage([595.28, 841.89]);
@@ -3372,7 +3392,7 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
     20 // Tamanho do recuo na primeira linha do parágrafo
   );
 
-  await addFooter(pdfDoc, page14, data, countPages);
+  await addFooter(pdfDoc, page14, data);
   console.log("pagina 14 criada")
 
   const pageLimitationsOfReport = pdfDoc.addPage([595.28, 841.89]);
@@ -3406,7 +3426,7 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
     20 // Tamanho do recuo na primeira linha do parágrafo
   );
 
-  await addFooter(pdfDoc, pageLimitationsOfReport, data, countPages);
+  await addFooter(pdfDoc, pageLimitationsOfReport, data);
   console.log("pagaina de limitações do relatório criada")
 
   const page15 = pdfDoc.addPage([595.28, 841.89]);
@@ -3770,7 +3790,7 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
     font: helveticaFont,
   });
 
-  await addFooter(pdfDoc, page15, data, countPages);
+  await addFooter(pdfDoc, page15, data);
   console.log("Ultima pagina criada")
 
   const pageSumary = pdfDoc.addPage([595.28, 841.89]);
@@ -3895,45 +3915,7 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
   const summaryIndex = 1;
   pdfDoc.insertPage(summaryIndex, pageSumary);
   
-  // Atualizar numeração das páginas após inserção do sumário
-  await updatePageNumbers(pdfDoc, data);
-
-  // Função para atualizar numeração das páginas
-  async function updatePageNumbers(pdfDoc, data) {
-    const helveticaFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
-    const totalPages = pdfDoc.getPageCount();
-    
-    for (let i = 0; i < totalPages; i++) {
-      const page = pdfDoc.getPage(i);
-      const pageNumber = i + 1;
-      
-      // Pular primeira página (capa) e segunda página (sumário)
-      if (i === 0 || i === 1) continue;
-      
-      // Apagar toda a área do rodapé direito onde fica a numeração
-      page.drawRectangle({
-        x: 400,
-        y: 10,
-        width: 200,
-        height: 40,
-        color: rgb(1, 1, 1), // Branco
-      });
-      
-      // Redesenhar apenas o texto correto da numeração
-      const formattedDate = data.inspection.endDate ? formatDate(data.inspection.endDate) : "N/A";
-      const footerTextEnd = `C&T.0.1 | ${data.inspection.endDate}\nPágina ${pageNumber}`;
-      
-      const lines = footerTextEnd.split("\n");
-      lines.forEach((line, index) => {
-        page.drawText(line, {
-          x: 480,
-          y: 25 - index * 12,
-          size: 10,
-          font: helveticaFont,
-        });
-      });
-    }
-  }
+  // Não usar updatePageNumbers - reestruturar lógica de rodapés
 
   // Adicione esta função de utilidade
   function validatePageCount(pdfDoc, countPages) {
