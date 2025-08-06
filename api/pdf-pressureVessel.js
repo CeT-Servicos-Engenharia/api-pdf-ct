@@ -3787,6 +3787,7 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
   await addFooter(pdfDoc, page15, data);
   console.log("Ultima pagina criada")
 
+  // Criar sumário como página separada (será inserido depois)
   const pageSumary = pdfDoc.addPage([595.28, 841.89]);
   await addHeader(pdfDoc, pageSumary, clientData, headerAssets);
   pageSumary.drawText("SUMÁRIO", {
@@ -3909,8 +3910,6 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
   const summaryIndex = 1;
   pdfDoc.insertPage(summaryIndex, pageSumary);
   
-  // Não usar updatePageNumbers - reestruturar lógica de rodapés
-
   // Adicione esta função de utilidade
   function validatePageCount(pdfDoc, countPages) {
     const actualPageCount = pdfDoc.getPageCount();
@@ -3929,8 +3928,64 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
     pdfDoc.removePage(totalPages - 1);
   }
 
-  // Adicionar rodapé ao sumário
+  // IMPORTANTE: Adicionar rodapé ao sumário APÓS a inserção e remoção
+  // Agora o sumário está na posição correta (índice 1 = página 2)
   await addFooter(pdfDoc, pageSumary, data);
+
+  // FUNÇÃO PARA RECALCULAR TODOS OS RODAPÉS APÓS INSERÇÃO DO SUMÁRIO
+  async function recalculateAllFooters(pdfDoc, data) {
+    const helveticaFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
+    
+    for (let i = 0; i < pdfDoc.getPageCount(); i++) {
+      const page = pdfDoc.getPage(i);
+      const pageWidth = page.getWidth();
+      
+      // Pular capa (página 1, índice 0) - sem rodapé
+      if (i === 0) continue;
+      
+      // Limpar área do rodapé direito (onde fica a numeração)
+      page.drawRectangle({
+        x: pageWidth - 200,
+        y: 30,
+        width: 200,
+        height: 40,
+        color: rgb(1, 1, 1), // Branco para apagar
+      });
+      
+      // Recalcular numeração baseada na posição atual
+      let pageNumber;
+      if (i === 1) {
+        // Página 2 (sumário) - sem numeração
+        pageNumber = null;
+      } else {
+        // Páginas 3+ - numeração sequencial
+        pageNumber = i + 1;
+      }
+      
+      // Redesenhar apenas a parte da numeração se necessário
+      if (pageNumber !== null) {
+        const footerTextEnd = `C&T.0.1 | ${data.inspection.endDate}\nPágina ${pageNumber}`;
+        const textWidthEnd = helveticaFont.widthOfTextAtSize("C&T.0.1 | " + data.inspection.endDate, 10);
+        const xEnd = pageWidth - textWidthEnd - 50;
+        const baseY = 50;
+        const lineHeight = 12;
+        
+        const lines = footerTextEnd.split("\n");
+        lines.forEach((line, index) => {
+          page.drawText(line, {
+            x: xEnd,
+            y: baseY - index * lineHeight,
+            size: 10,
+            font: helveticaFont,
+            color: rgb(0.5, 0.5, 0.5),
+          });
+        });
+      }
+    }
+  }
+  
+  // Recalcular todos os rodapés após as operações de inserção
+  await recalculateAllFooters(pdfDoc, data);
 
   console.log("Quantidade de paginas no pdf: ", countPages);
 
