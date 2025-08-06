@@ -306,7 +306,8 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
       if (currentPageIndex === 0 || currentPageIndex === 1) {
         pageNumber = null; // Sem numeração
       } else {
-        pageNumber = currentPageIndex + 1; // Numeração baseada na posição atual
+        // A numeração começa em 2 para a página de índice 2 (terceira página)
+        pageNumber = currentPageIndex; // Página 3 (índice 2) = "Página 2"
       }
     }
 
