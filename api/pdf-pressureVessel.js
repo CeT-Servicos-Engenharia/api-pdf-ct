@@ -289,7 +289,12 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
     }
   }
 
-  async function addFooter(pdfDoc, page, data, pageNumber = null) {
+  async function addFooter(pdfDoc, page, data, pageNumber = null, skipFooter = false) {
+    // Se skipFooter for true, não adicionar rodapé (usado durante criação inicial das páginas)
+    if (skipFooter) {
+      return;
+    }
+    
     const helveticaFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
     const pageWidth = page.getWidth(); // Obtém a largura da página
     const formattedDate = data.inspection.endDate ? formatDate(data.inspection.endDate) : "N/A";
@@ -3928,53 +3933,12 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
     pdfDoc.removePage(totalPages - 1);
   }
 
-  // IMPORTANTE: Adicionar rodapé ao sumário APÓS a inserção e remoção
-  // Agora o sumário está na posição correta (índice 1 = página 2)
-  await addFooter(pdfDoc, pageSumary, data);
-
-  // FUNÇÃO PARA RECALCULAR TODOS OS RODAPÉS APÓS INSERÇÃO DO SUMÁRIO
-  async function recalculateAllFooters(pdfDoc, data) {
-    const helveticaFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
-    
-    for (let i = 0; i < pdfDoc.getPageCount(); i++) {
-      const page = pdfDoc.getPage(i);
-      const pageWidth = page.getWidth();
-      
-      // IMPORTANTE: NÃO limpar área - usar fundo transparente para não sobrepor conteúdo
-      // Quando o sumário é gerado (último passo) e a numeração é redesenhada,
-      // ela deve ter fundo transparente para não interferir no documento
-      
-      // Numeração sequencial para TODAS as páginas (1, 2, 3, 4...)
-      const pageNumber = i + 1;
-      
-      // Redesenhar numeração com posicionamento ajustado para evitar sobreposição
-      const footerTextEnd = `C&T.0.1 | ${data.inspection.endDate}\nPágina ${pageNumber}`;
-      const textWidthEnd = helveticaFont.widthOfTextAtSize("C&T.0.1 | " + data.inspection.endDate, 10);
-      
-      // Ajustar posição X para evitar sobreposição (mais à direita)
-      const xEnd = pageWidth - textWidthEnd - 30; // Reduzido de 50 para 30
-      
-      // Ajustar posição Y para ficar mais baixo e evitar conflito
-      const baseY = 35; // Reduzido de 50 para 35
-      const lineHeight = 12;
-      
-      const lines = footerTextEnd.split("\n");
-      lines.forEach((line, index) => {
-        page.drawText(line, {
-          x: xEnd,
-          y: baseY - index * lineHeight,
-          size: 10,
-          font: helveticaFont,
-          color: rgb(0.5, 0.5, 0.5),
-          // FUNDO TRANSPARENTE: Sem drawRectangle para não sobrepor conteúdo
-          // Isso garante que a numeração não interfira visualmente no documento
-        });
-      });
-    }
+  // AGORA adicionar rodapés corretos em TODAS as páginas após inserção do sumário
+  // Isso garante numeração sequencial correta sem sobreposição
+  for (let i = 0; i < pdfDoc.getPageCount(); i++) {
+    const page = pdfDoc.getPage(i);
+    await addFooter(pdfDoc, page, data, i + 1); // Numeração sequencial 1, 2, 3...
   }
-  
-  // Recalcular todos os rodapés após as operações de inserção
-  await recalculateAllFooters(pdfDoc, data);
 
   console.log("Quantidade de paginas no pdf: ", countPages);
 
