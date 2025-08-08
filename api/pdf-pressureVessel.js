@@ -4007,17 +4007,17 @@ async function corrigirSumario(pdfDoc) {
   const helveticaFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
 
   const sumarioItens = [
-    { titulo: "1. INFORMAÇÕES GERAIS", pagina: 2 },
-    { titulo: "1.5 DADOS DO EQUIPAMENTO", pagina: 3 },
-    { titulo: "1.6 CATEGORIZAÇÃO", pagina: 4 },
-    { titulo: "1.8 DOCUMENTAÇÃO EXISTENTE", pagina: 5 },
-    { titulo: "2. DEFINIÇÃO", pagina: 7 },
+    { titulo: "1. INFORMAÇÕES GERAIS", pagina: 3 },
+    { titulo: "1.5 DADOS DO EQUIPAMENTO", pagina: 4 },
+    { titulo: "1.6 CATEGORIZAÇÃO", pagina: 5 },
+    { titulo: "1.8 DOCUMENTAÇÃO EXISTENTE", pagina: 6 },
+    { titulo: "2 DEFINIÇÃO", pagina: 7 },
     { titulo: "5.1 DISPOSITIVOS", pagina: 8 },
     { titulo: "5.2 MAPA DE MEDIÇÃO", pagina: 9 },
     { titulo: "5.3 CORPO DO EQUIPAMENTO", pagina: 10 },
   ];
 
-  const sumarioPage = pages[0];
+  const sumarioPage = pages[1]; // Página 2
   const startY = 620;
   const lineHeight = 18;
 
@@ -4031,7 +4031,7 @@ async function corrigirSumario(pdfDoc) {
 
   sumarioItens.forEach((item, index) => {
     const y = startY - index * lineHeight;
-    const linha = `${item.titulo} .................................................. ${item.pagina}`;
+    const linha = `${item.titulo.padEnd(60, '.')} ${item.pagina}`;
     sumarioPage.drawText(linha, {
       x: 50,
       y,
@@ -4043,5 +4043,5 @@ async function corrigirSumario(pdfDoc) {
 }
 
 
-// CHAME NO FINAL DA generatePDF:
+// Dentro da função generatePDF, chame:
 // await corrigirSumario(pdfDoc);
