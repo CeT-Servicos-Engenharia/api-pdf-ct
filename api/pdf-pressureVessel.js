@@ -194,7 +194,7 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
   
   const pdfDoc = await PDFDocument.create();
 
-  // Objeto para rastrear as páginas de início de cada seção
+  // NOVO: Objeto para rastrear páginas reais
   const pageRefs = {};
 
   const logoPath = path.resolve(__dirname, "../assets/CET LOGO - TRANSPARENCIA(1).png");
@@ -224,6 +224,10 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
     helveticaFont,
     helveticaBoldFont,
   };
+
+  console.log("Começando pagina 1")
+  const page = pdfDoc.addPage([595.28, 841.89]);
+  countPages++;
 
   async function addHeader(pdfDoc, page, clientData, assets) {
     try {
@@ -288,14 +292,39 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
     }
   }
 
-  // Função addFooter modificada para aceitar total de páginas
-  async function addFooter(pdfDoc, page, data, pageNumber, totalPages) {
+  // MODIFICADO: addFooter agora aceita totalPages
+  async function addFooter(pdfDoc, page, data, pageNumber = null, totalPages = null, skipFooter = false) {
+    // Se skipFooter for true, não adicionar rodapé (usado durante criação inicial das páginas)
+    if (skipFooter) {
+      return;
+    }
+    
     const helveticaFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
-    const pageWidth = page.getWidth();
+    const pageWidth = page.getWidth(); // Obtém a largura da página
+    const formattedDate = data.inspection.endDate ? formatDate(data.inspection.endDate) : "N/A";
+
+    // Se pageNumber não foi fornecido, calcular automaticamente baseado na posição da página
+    if (pageNumber === null) {
+      const pages = [];
+      for (let i = 0; i < pdfDoc.getPageCount(); i++) {
+        pages.push(pdfDoc.getPage(i));
+      }
+      const currentPageIndex = pages.indexOf(page);
+      
+      // TODAS as páginas têm numeração sequencial (1, 2, 3, 4...)
+      pageNumber = currentPageIndex + 1;
+    }
+
+    // Se totalPages não foi fornecido, usar o total atual
+    if (totalPages === null) {
+      totalPages = pdfDoc.getPageCount();
+    }
 
     const footerTextStart = `${data.numeroProjeto || " "}\nART:${data.artProjeto}`;
     const footerTextMiddle = `Eng. Mec. Cleonis Batista Santos\nEng. Mec. Seg. Thiago Wherman Candido Borges`;
-    const footerTextEnd = `C&T.0.1 | ${formatDate(data.inspection.endDate)}\nPágina ${pageNumber} de ${totalPages}`;
+    
+    // MODIFICADO: Incluir total de páginas
+    const footerTextEnd = `C&T.0.1 | ${data.inspection.endDate}\nPágina ${pageNumber} de ${totalPages}`;
 
     const drawMultilineText = (text, x, y, lineHeight) => {
       const lines = text.split("\n");
@@ -311,7 +340,7 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
     };
 
     const textWidthMiddle = helveticaFont.widthOfTextAtSize("Cleonis Batista Santos", 10);
-    const textWidthEnd = helveticaFont.widthOfTextAtSize(`C&T.0.1 | ${formatDate(data.inspection.endDate)}`, 10);
+    const textWidthEnd = helveticaFont.widthOfTextAtSize("C&T.0.1 | " + data.inspection.endDate, 10);
 
     const xStart = 50;
     const xMiddle = (pageWidth - textWidthMiddle) / 3;
@@ -323,17 +352,6 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
     drawMultilineText(footerTextMiddle, xMiddle, baseY, lineHeight);
     drawMultilineText(footerTextEnd, xEnd, baseY, lineHeight);
   }
-
-  // Função para verificar se há dados do corpo do equipamento
-  function hasEquipmentBodyData(data) {
-    return data.inspection && data.inspection.equipmentBodyData && 
-           Object.keys(data.inspection.equipmentBodyData).length > 0;
-  }
-
-  console.log("Começando pagina 1")
-  const page = pdfDoc.addPage([595.28, 841.89]);
-  countPages++;
-  pageRefs.capa = pdfDoc.getPageCount();
 
   await addHeader(pdfDoc, page, clientData, headerAssets);
 
@@ -441,10 +459,18 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
     font: helveticaFont,
   });
 
+  const formattedDate = data.endDate ? formatDate(data.endDate) : "N/A";
+
+  console.log("Concluindo pagina 1")
+  await addFooter(pdfDoc, page, data);
+
   console.log("Começando pagina 2")
   const page2 = pdfDoc.addPage([595.28, 841.89]);
   countPages++;
+
+  // NOVO: Registrar página real
   pageRefs.informacoesGerais = pdfDoc.getPageCount();
+  let upTo14 = pageRefs.informacoesGerais;
 
   await addHeader(pdfDoc, page2, clientData, headerAssets);
 
@@ -461,178 +487,309 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
     font: helveticaBoldFont,
   });
 
-  // Aqui você continuaria com todo o resto do seu código original...
-  // Por brevidade, vou pular para as partes importantes e mostrar onde inserir os pageRefs
+  // ... (resto do código da página 2 - mantendo igual ao original)
+  // Por brevidade, vou pular para as partes importantes
 
-  // Exemplo de como continuar:
+  // Aqui você continuaria com TODO o resto do seu código original,
+  // apenas adicionando as linhas pageRefs.nomeSecao = pdfDoc.getPageCount(); 
+  // em cada seção importante
+
+  // Exemplo das próximas páginas:
   console.log("Começando pagina 3")
   const page3 = pdfDoc.addPage([595.28, 841.89]);
   countPages++;
   pageRefs.dadosEquipamento = pdfDoc.getPageCount();
-  await addHeader(pdfDoc, page3, clientData, headerAssets);
+  let upTo15 = pageRefs.dadosEquipamento;
   // ... resto do código da página 3
 
   console.log("Começando pagina 4")
   const page4 = pdfDoc.addPage([595.28, 841.89]);
   countPages++;
   pageRefs.categorizacao = pdfDoc.getPageCount();
-  await addHeader(pdfDoc, page4, clientData, headerAssets);
+  let upTo18 = pageRefs.categorizacao;
   // ... resto do código da página 4
 
   console.log("Começando pagina 5")
   const page5 = pdfDoc.addPage([595.28, 841.89]);
   countPages++;
   pageRefs.documentacaoExistente = pdfDoc.getPageCount();
-  await addHeader(pdfDoc, page5, clientData, headerAssets);
+  let upTo19 = pageRefs.documentacaoExistente;
   // ... resto do código da página 5
 
   console.log("Começando pagina 7")
   const page7 = pdfDoc.addPage([595.28, 841.89]);
   pageRefs.definicaoNormas = pdfDoc.getPageCount();
-  await addHeader(pdfDoc, page7, clientData, headerAssets);
+  let upTo4 = pageRefs.definicaoNormas;
   // ... resto do código da página 7
 
   // Seção 5: Caracterização
   pageRefs.caracterizacao = pdfDoc.getPageCount() + 1;
+  let upTo51 = pageRefs.caracterizacao;
   // await generateDevicesPDF(pdfDoc, data.inspection.devicesData);
 
   const page9 = pdfDoc.addPage([595.28, 841.89]);
   countPages++;
   pageRefs.mapaMedicao = pdfDoc.getPageCount();
-  await addHeader(pdfDoc, page9, clientData, headerAssets);
+  let upTo52 = pageRefs.mapaMedicao;
   // ... resto do código da página 9
 
+  // Função para verificar se há dados do corpo do equipamento
+  function hasEquipmentBodyData(data) {
+    return data.inspection && data.inspection.equipmentBodyData && 
+           Object.keys(data.inspection.equipmentBodyData).length > 0;
+  }
+
+  let upTo53 = null;
   if (hasEquipmentBodyData(data)) {
     const page10 = pdfDoc.addPage([595.28, 841.89]);
     countPages++;
     pageRefs.corpoEquipamento = pdfDoc.getPageCount();
-    await addHeader(pdfDoc, page10, clientData, headerAssets);
+    upTo53 = pageRefs.corpoEquipamento;
     // ... resto do código da página 10
   }
 
   const page12 = pdfDoc.addPage([595.28, 841.89]);
   countPages++;
   pageRefs.recomendacoes = pdfDoc.getPageCount();
-  await addHeader(pdfDoc, page12, clientData, headerAssets);
+  let upTo54 = pageRefs.recomendacoes;
   // ... resto do código da página 12
 
   const pagePLH = pdfDoc.addPage([595.28, 841.89]);
-  await addHeader(pdfDoc, pagePLH, clientData, headerAssets);
   // ... resto do código da página PLH
 
   const page13 = pdfDoc.addPage([595.28, 841.89]);
   countPages++;
   pageRefs.registrosFotograficos = pdfDoc.getPageCount();
-  await addHeader(pdfDoc, page13, clientData, headerAssets);
+  let upTo55 = pageRefs.registrosFotograficos;
   // ... resto do código da página 13
 
   const page14 = pdfDoc.addPage([595.28, 841.89]);
   countPages++;
   pageRefs.recomendacoesAdicionais = pdfDoc.getPageCount();
-  await addHeader(pdfDoc, page14, clientData, headerAssets);
+  let upTo6 = pageRefs.recomendacoesAdicionais;
   // ... resto do código da página 14
 
   const pageLimitationsOfReport = pdfDoc.addPage([595.28, 841.89]);
   countPages++;
   pageRefs.limitacoes = pdfDoc.getPageCount();
-  await addHeader(pdfDoc, pageLimitationsOfReport, clientData, headerAssets);
+  let upTo7 = pageRefs.limitacoes;
   // ... resto do código da página de limitações
 
   const page15 = pdfDoc.addPage([595.28, 841.89]);
   countPages++;
   pageRefs.conclusao = pdfDoc.getPageCount();
-  await addHeader(pdfDoc, page15, clientData, headerAssets);
+  let upTo8 = pageRefs.conclusao;
   // ... resto do código da página 15
 
-  // =======================================================================
-  // NOVA LÓGICA DO SUMÁRIO E RODAPÉS
-  // =======================================================================
+  // SUMÁRIO CORRIGIDO - usando pageRefs em vez de upTo...
+  const pageSumary = pdfDoc.addPage([595.28, 841.89]);
+  await addHeader(pdfDoc, pageSumary, clientData, headerAssets);
 
-  // 1. Criar a página do sumário (ela será adicionada ao final, por enquanto)
-  const summaryPage = pdfDoc.addPage();
-  const summaryPageIndex = pdfDoc.getPageCount() - 1;
-  await addHeader(pdfDoc, summaryPage, clientData, headerAssets);
-  summaryPage.drawText("SUMÁRIO", {
+  pageSumary.drawText("SUMÁRIO", {
     x: 240,
     y: 700,
     size: 24,
     font: helveticaBoldFont,
   });
 
-  // 2. Montar os itens do sumário usando os números de página corretos de `pageRefs`
-  function generateDynamicSections(data, pageRefs) {
+  const pageCount = pdfDoc.getPageCount();
+
+  function generateDynamicSections(data) {
     let sections = [];
     let subSectionCount = 1;
 
-    sections.push({ title: "5. CARACTERIZAÇÃO", pageRef: 'caracterizacao' });
-    sections.push({ title: `  5.${subSectionCount++} DISPOSITIVOS`, pageRef: 'caracterizacao' });
-    sections.push({ title: `  5.${subSectionCount++} MAPA DE MEDIÇÃO`, pageRef: 'mapaMedicao' });
+    // Seção 5 principal
+    sections.push({
+      title: "5. CARACTERIZAÇÃO",
+      page: pageRefs.caracterizacao + 1 // +1 porque o sumário será inserido antes
+    });
+
+    // 5.1 Dispositivos (sempre presente)
+    sections.push({
+      title: `5.${subSectionCount} DISPOSITIVOS`,
+      page: pageRefs.caracterizacao + 1
+    });
+    subSectionCount++;
+
+    // 5.2 Mapa de Medição (sempre presente)
+    sections.push({
+      title: `5.${subSectionCount} MAPA DE MEDIÇÃO`,
+      page: pageRefs.mapaMedicao + 1
+    });
+    subSectionCount++;
+
+    // 5.3 Corpo do Equipamento (condicional)
     if (hasEquipmentBodyData(data)) {
-      sections.push({ title: `  5.${subSectionCount++} CORPO DO EQUIPAMENTO`, pageRef: 'corpoEquipamento' });
+      sections.push({
+        title: `5.${subSectionCount} CORPO DO EQUIPAMENTO`,
+        page: pageRefs.corpoEquipamento + 1
+      });
+      subSectionCount++;
     }
-    sections.push({ title: `  5.${subSectionCount++} RECOMENDAÇÕES`, pageRef: 'recomendacoes' });
-    sections.push({ title: `  5.${subSectionCount++} REGISTROS FOTOGRÁFICOS`, pageRef: 'registrosFotograficos' });
-    
+
+    // 5.4 Recomendações (sempre presente)
+    sections.push({
+      title: `5.${subSectionCount} RECOMENDAÇÕES`,
+      page: pageRefs.recomendacoes + 1
+    });
+    subSectionCount++;
+
+    // 5.5 Registros Fotográficos (sempre presente)
+    sections.push({
+      title: `5.${subSectionCount} REGISTROS FOTOGRÁFICOS`,
+      page: pageRefs.registrosFotograficos + 1
+    });
+
     return sections;
   }
 
+  // CORRIGIDO: usar pageRefs + 1 (por causa do sumário que será inserido)
   const tocItems = [
-    { title: "1. INFORMAÇÕES GERAIS", pageRef: 'informacoesGerais' },
-    { title: "  1.1 DADOS CADASTRAIS", pageRef: 'informacoesGerais' },
-    { title: "  1.2 RESPONSÁVEIS TÉCNICOS", pageRef: 'informacoesGerais' },
-    { title: "  1.3 CONTROLE DE REVISÃO", pageRef: 'informacoesGerais' },
-    { title: "  1.4 INSPEÇÕES CONTRATADAS", pageRef: 'informacoesGerais' },
-    { title: "  1.5 DADOS DO EQUIPAMENTO", pageRef: 'dadosEquipamento' },
-    { title: "  1.6 CATEGORIZAÇÃO", pageRef: 'categorizacao' },
-    { title: "  1.7 PESSOAS QUE ACOMPANHARAM", pageRef: 'categorizacao' },
-    { title: "  1.8 DOCUMENTAÇÃO EXISTENTE", pageRef: 'documentacaoExistente' },
-    { title: "2. DEFINIÇÃO", pageRef: 'definicaoNormas' },
-    { title: "3. OBJETIVO", pageRef: 'definicaoNormas' },
-    { title: "4. NORMAS", pageRef: 'definicaoNormas' },
-    ...generateDynamicSections(data, pageRefs),
-    { title: "6. RECOMENDAÇÕES ADICIONAIS", pageRef: 'recomendacoesAdicionais' },
-    { title: "7. LIMITAÇÕES DO RELATÓRIO", pageRef: 'limitacoes' },
-    { title: "8. CONCLUSÃO", pageRef: 'conclusao' },
+    { title: "1. INFORMAÇÕES GERAIS", page: pageRefs.informacoesGerais + 1 },
+    { title: "1.1 DADOS CADASTRAIS", page: pageRefs.informacoesGerais + 1 },
+    { title: "1.2 RESPONSÁVEIS TÉCNICOS", page: pageRefs.informacoesGerais + 1 },
+    { title: "1.3 CONTROLE DE REVISÃO", page: pageRefs.informacoesGerais + 1 },
+    { title: "1.4 INSPEÇÕES CONTRATADAS", page: pageRefs.informacoesGerais + 1 },
+    { title: "1.5 DADOS DO EQUIPAMENTO", page: pageRefs.dadosEquipamento + 1 },
+    { title: "1.6 CATEGORIZAÇÃO", page: pageRefs.categorizacao + 1 },
+    { title: "1.7 PESSOAS QUE ACOMPANHARAM", page: pageRefs.categorizacao + 1 },
+    { title: "1.8 DOCUMENTAÇÃO EXISTENTE", page: pageRefs.documentacaoExistente + 1 },
+    { title: "2 DEFINIÇÃO", page: pageRefs.definicaoNormas + 1 },
+    { title: "3 OBJETIVO", page: pageRefs.definicaoNormas + 1 },
+    { title: "4 NORMAS", page: pageRefs.definicaoNormas + 1 },
+    ...generateDynamicSections(data),
+    { title: "6. RECOMENDAÇÕES ADICIONAIS", page: pageRefs.recomendacoesAdicionais + 1 },
+    { title: "7. LIMITAÇÕES DO RELATÓRIO", page: pageRefs.limitacoes + 1 },
+    { title: "8. CONCLUSÃO", page: pageRefs.conclusao + 1 },
   ];
 
   let yPosition = 660;
   const lineHeightSumary = 20;
 
   tocItems.forEach((item) => {
-    // O número da página no sumário será o número da página do conteúdo + 1 (por causa da própria pág. do sumário)
-    const pageNum = (pageRefs[item.pageRef] || 1) + 1;
-    const title = item.title;
-    const titleWidth = helveticaFont.widthOfTextAtSize(title, 12);
-    const dots = ".".repeat(Math.max(0, Math.floor((450 - titleWidth) / helveticaFont.widthOfTextAtSize(".", 12))));
+    const titleX = 50;
+    const pageX = 500;
 
-    summaryPage.drawText(`${title} ${dots} ${pageNum}`, {
-        x: 50, y: yPosition, size: 12, font: helveticaFont,
+    pageSumary.drawText(`${item.title}`, {
+      x: 50,
+      y: yPosition,
+      size: 12,
+      font: helveticaFont,
     });
+
+    const textWidth = helveticaFont.widthOfTextAtSize(item.title, 12);
+    const dots = ".".repeat(
+      Math.floor(
+        (pageX - (titleX + textWidth)) /
+        helveticaFont.widthOfTextAtSize(".", 12)
+      )
+    );
+
+    pageSumary.drawText(dots, {
+      x: titleX + textWidth + 5,
+      y: yPosition,
+      size: 12,
+      font: helveticaFont,
+    });
+
+    pageSumary.drawText(`${item.page}`, {
+      x: 500,
+      y: yPosition,
+      size: 12,
+      font: helveticaFont,
+    });
+
     yPosition -= lineHeightSumary;
   });
 
-  // 3. Mover a página do sumário para a posição correta (índice 1, após a capa)
-  const pageToMove = pdfDoc.getPage(summaryPageIndex);
-  pdfDoc.removePage(summaryPageIndex);
-  pdfDoc.insertPage(1, pageToMove);
-
-  // 4. Adicionar rodapés com numeração correta em TODAS as páginas
-  const totalPages = pdfDoc.getPageCount();
-  for (let i = 0; i < totalPages; i++) {
-    const page = pdfDoc.getPage(i);
-    // Passa o número da página (i + 1) e o total de páginas para a função addFooter
-    await addFooter(pdfDoc, page, data, i + 1, totalPages); 
+  // Inserir sumário na posição 1 (segunda página)
+  const summaryIndex = 1;
+  pdfDoc.insertPage(summaryIndex, pageSumary);
+  
+  // Adicione esta função de utilidade
+  function validatePageCount(pdfDoc, countPages) {
+    const actualPageCount = pdfDoc.getPageCount();
+    if (countPages > actualPageCount) {
+      countPages = actualPageCount;
+    }
+    return countPages;
   }
+
+  // E use-a antes de operações críticas
+  countPages = validatePageCount(pdfDoc, countPages);
+
+  // Antes de remover a última página
+  const totalPages = pdfDoc.getPageCount();
+  if (totalPages > 1) { // Só remove se houver mais de uma página
+    pdfDoc.removePage(totalPages - 1);
+  }
+
+  // CORRIGIDO: Adicionar rodapés com total de páginas correto
+  const finalTotalPages = pdfDoc.getPageCount();
+  for (let i = 0; i < finalTotalPages; i++) {
+    const page = pdfDoc.getPage(i);
+    
+    // Para páginas 3+ (índice 2+), limpar área da numeração antiga antes de redesenhar
+    if (i >= 2) {
+      const helveticaFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
+      const pageWidth = page.getWidth();
+      
+      // Calcular posição da numeração para limpeza precisa
+      const textWidthEnd = helveticaFont.widthOfTextAtSize("C&T.0.1 | " + data.inspection.endDate, 10);
+      const xEnd = pageWidth - textWidthEnd - 50;
+      
+      // Limpar APENAS a área da numeração (quadrado pequeno e preciso)
+      page.drawRectangle({
+        x: xEnd - 5, // Margem pequena à esquerda
+        y: 35, // Área específica da numeração
+        width: textWidthEnd + 60, // Largura suficiente para cobrir "C&T.0.1 | data\nPágina X"
+        height: 25, // Altura para cobrir 2 linhas da numeração
+        color: rgb(1, 1, 1), // Branco para apagar
+      });
+    }
+    
+    // CORRIGIDO: Passar o total de páginas correto
+    await addFooter(pdfDoc, page, data, i + 1, finalTotalPages); // Numeração sequencial 1, 2, 3...
+  }
+
+  console.log("Quantidade de paginas no pdf: ", countPages);
 
   const pdfBytes = await pdfDoc.save();
   return pdfBytes;
 }
 
-module.exports = {
-  generatePDF,
-  getProjectData,
-  getClientData,
-  getEngenieerData,
-  getAnalystData,
-};
+// Handler principal para Vercel
+async function generatePressureVesselPdf(projectId) {
+  if (!projectId) {
+    throw new Error("O parâmetro 'projectId' é obrigatório.");
+  }
+
+  try {
+    const projectData = await getProjectData(projectId);
+    const clientData = await getClientData(
+      projectData.client || projectData.clientId
+    );
+    const engenieerData = await getEngenieerData(
+      projectData.engenieer?.id || projectData.engenieerId
+    );
+    const analystData = await getAnalystData(
+      projectData.analyst?.id || projectData.analystId
+    );
+
+    const pdfBytes = await generatePDF(
+      projectData,
+      clientData,
+      engenieerData,
+      analystData
+    );
+
+    return Buffer.from(pdfBytes);
+  } catch (error) {
+    console.error("Erro ao gerar o PDF:", error.message);
+    throw new Error("Erro ao gerar o PDF");
+  }
+}
+
+// Exporta a função corrigida
+module.exports = generatePressureVesselPdf;
 
