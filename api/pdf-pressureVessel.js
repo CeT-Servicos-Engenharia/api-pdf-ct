@@ -27,107 +27,29 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
   const pageRefs = {};
 
   // --- INÍCIO DA GERAÇÃO DAS PÁGINAS DE CONTEÚDO ---
+  // (Esta parte permanece a mesma, você gera todas as suas páginas de conteúdo primeiro)
+  // Exemplo:
+  const page1 = pdfDoc.addPage();
+  // ... desenha conteúdo da page1 ...
 
-  // Página 1: Capa
-  const page1 = pdfDoc.addPage([595.28, 841.89]);
-  // ... (código para desenhar a capa - igual ao seu original)
-  // ... (desenhar título, imagem, detalhes do equipamento, etc.)
-  
-  // Página 2: Informações Gerais
-  const page2 = pdfDoc.addPage([595.28, 841.89]);
+  const page2 = pdfDoc.addPage();
   pageRefs['1_INFO_GERAIS'] = pdfDoc.getPageCount();
-  await addHeader(pdfDoc, page2, clientData, headerAssets);
-  // ... (código para desenhar a página 2 - igual ao seu original)
-  // ... (tabelas de dados cadastrais, responsáveis, etc.)
+  // ... desenha conteúdo da page2 ...
 
-  // Página 3: Dados do Equipamento
-  const page3 = pdfDoc.addPage([595.28, 841.89]);
-  pageRefs['1_5_DADOS_EQUIPAMENTO'] = pdfDoc.getPageCount();
-  await addHeader(pdfDoc, page3, clientData, headerAssets);
-  // ... (código para desenhar a página 3 - igual ao seu original)
-
-  // Página 4: Categorização
-  const page4 = pdfDoc.addPage([595.28, 841.89]);
-  pageRefs['1_6_CATEGORIZACAO'] = pdfDoc.getPageCount();
-  await addHeader(pdfDoc, page4, clientData, headerAssets);
-  // ... (código para desenhar a página 4 - igual ao seu original)
-
-  // Página 5: Documentação Existente (pode criar mais páginas)
-  const page5 = pdfDoc.addPage([595.28, 841.89]);
-  pageRefs['1_8_DOC_EXISTENTE'] = pdfDoc.getPageCount();
-  await addHeader(pdfDoc, page5, clientData, headerAssets);
-  // ... (chamar sua função drawPaginatedTable, que já adiciona páginas se necessário)
-  // A função drawPaginatedTable precisa ser ajustada para não adicionar rodapés ainda.
-  
-  // Página 7: Definição, Objetivo, Normas
-  const page7 = pdfDoc.addPage([595.28, 841.89]);
-  pageRefs['2_DEFINICAO'] = pdfDoc.getPageCount();
-  await addHeader(pdfDoc, page7, clientData, headerAssets);
-  // ... (código para desenhar a página 7 - igual ao seu original)
-
-  // Seção 5: Caracterização
-  pageRefs['5_CARACTERIZACAO'] = pdfDoc.getPageCount() + 1; // Próxima página a ser criada
-  
-  // 5.1 Dispositivos
-  await generateDevicesPDF(pdfDoc, data.inspection.devicesData, clientData, headerAssets); // Passar assets
-  pageRefs['5_1_DISPOSITIVOS'] = pageRefs['5_CARACTERIZACAO']; // Começa na mesma página
-
-  // 5.2 Mapa de Medição
-  const page9 = pdfDoc.addPage([595.28, 841.89]);
-  pageRefs['5_2_MAPA_MEDICAO'] = pdfDoc.getPageCount();
-  await addHeader(pdfDoc, page9, clientData, headerAssets);
-  // ... (código para desenhar a página 9 - igual ao seu original)
-
-  // 5.3 Corpo do Equipamento (Condicional)
-  if (hasEquipmentBodyData(data)) {
-      const page10 = pdfDoc.addPage([595.28, 841.89]);
-      pageRefs['5_3_CORPO_EQUIPAMENTO'] = pdfDoc.getPageCount();
-      await addHeader(pdfDoc, page10, clientData, headerAssets);
-      // ... (código para desenhar a página 10 - igual ao seu original)
-  }
-
-  // 5.4 Recomendações
-  const page12 = pdfDoc.addPage([595.28, 841.89]);
-  pageRefs['5_4_RECOMENDACOES'] = pdfDoc.getPageCount();
-  await addHeader(pdfDoc, page12, clientData, headerAssets);
-  // ... (chamar sua função createRecommendationsPages)
-
-  // Página de Recomendações PLH
-  const pagePLH = pdfDoc.addPage([595.28, 841.89]);
-  await addHeader(pdfDoc, pagePLH, clientData, headerAssets);
-  // ... (chamar sua função createRecommendationsPLHPages)
-
-  // 5.5 Registros Fotográficos
-  const page13 = pdfDoc.addPage([595.28, 841.89]);
-  pageRefs['5_5_REGISTROS_FOTOGRAFICOS'] = pdfDoc.getPageCount();
-  await addHeader(pdfDoc, page13, clientData, headerAssets);
-  // ... (chamar sua função drawImageGridRegisterPhotographics)
-
-  // Página 6: Recomendações Adicionais
-  const page14 = pdfDoc.addPage([595.28, 841.89]);
-  pageRefs['6_RECOMENDACOES_ADICIONAIS'] = pdfDoc.getPageCount();
-  await addHeader(pdfDoc, page14, clientData, headerAssets);
-  // ... (código para desenhar a página 14 - igual ao seu original)
-
-  // Página 7: Limitações do Relatório
-  const pageLimitations = pdfDoc.addPage([595.28, 841.89]);
-  pageRefs['7_LIMITACOES'] = pdfDoc.getPageCount();
-  await addHeader(pdfDoc, pageLimitations, clientData, headerAssets);
-  // ... (código para desenhar a página de limitações - igual ao seu original)
-
-  // Página 8: Conclusão
-  const page15 = pdfDoc.addPage([595.28, 841.89]);
-  pageRefs['8_CONCLUSAO'] = pdfDoc.getPageCount();
-  await addHeader(pdfDoc, page15, clientData, headerAssets);
-  // ... (código para desenhar a página de conclusão - igual ao seu original)
+  // ... continue gerando TODAS as outras páginas do relatório ...
+  // ... e populando o objeto pageRefs com a contagem de página de cada seção.
+  // IMPORTANTE: Não adicione rodapés aqui. Eles serão adicionados no final.
 
   // --- FIM DA GERAÇÃO DAS PÁGINAS DE CONTEÚDO ---
 
 
   // --- ETAPA FINAL: GERAR SUMÁRIO E NUMERAR PÁGINAS ---
 
-  // Criar a página do sumário
-  const summaryPage = await PDFDocument.create().then(doc => doc.addPage());
+  // 1. Criar a página do sumário (ainda no final do documento)
+  const summaryPage = pdfDoc.addPage();
+  const summaryPageIndex = pdfDoc.getPageCount() - 1;
+
+  // 2. Desenhar o conteúdo do sumário
   await addHeader(pdfDoc, summaryPage, clientData, headerAssets);
   summaryPage.drawText("SUMÁRIO", {
     x: 240,
@@ -167,18 +89,16 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
   tocItems.push({ title: "7. LIMITAÇÕES DO RELATÓRIO", pageRef: '7_LIMITACOES' });
   tocItems.push({ title: "8. CONCLUSÃO", pageRef: '8_CONCLUSAO' });
 
-  // Desenhar itens do sumário
   let yPosition = 660;
   const lineHeightSumary = 20;
-  const pageNumberOffset = 1; // O sumário será a página 2, então tudo é deslocado
+  const pageNumberOffset = 1; // O sumário será a página 2, então tudo é deslocado em +1
 
   tocItems.forEach((item) => {
-    // O número da página é a referência + o deslocamento
     const pageNum = (pageRefs[item.pageRef] || 0) + pageNumberOffset;
     const title = item.title;
     
     const titleWidth = helveticaFont.widthOfTextAtSize(title, 12);
-    const dots = ".".repeat(Math.floor((450 - titleWidth) / helveticaFont.widthOfTextAtSize(".", 12)));
+    const dots = ".".repeat(Math.max(0, Math.floor((450 - titleWidth) / helveticaFont.widthOfTextAtSize(".", 12))));
 
     summaryPage.drawText(`${title} ${dots} ${pageNum}`, {
         x: 50,
@@ -189,33 +109,30 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
     yPosition -= lineHeightSumary;
   });
 
-  // Inserir a página de sumário na posição correta (após a capa)
-  const [summaryPageCopied] = await pdfDoc.copyPages(summaryPage.doc, [0]);
-  pdfDoc.insertPage(1, summaryPageCopied);
+  // 3. Mover a página do sumário para a posição correta (índice 1, após a capa)
+  pdfDoc.insertPage(1, pdfDoc.removePage(summaryPageIndex));
 
-  // Adicionar rodapés com numeração correta em TODAS as páginas
+  // 4. Adicionar rodapés com numeração correta em TODAS as páginas
   const totalPages = pdfDoc.getPageCount();
   for (let i = 0; i < totalPages; i++) {
     const page = pdfDoc.getPage(i);
-    // A função addFooter precisa ser chamada com o número da página correto
-    await addFooter(pdfDoc, page, data, i + 1); 
+    // A função addFooter precisa ser chamada com o número da página correto (i + 1)
+    await addFooter(pdfDoc, page, data, i + 1, totalPages); 
   }
 
   const pdfBytes = await pdfDoc.save();
   return pdfBytes;
 }
 
-
-// Função de rodapé (sem alterações, apenas para referência)
-async function addFooter(pdfDoc, page, data, pageNumber) {
+// Altere a função de rodapé para aceitar o número total de páginas
+async function addFooter(pdfDoc, page, data, pageNumber, totalPages) {
     const helveticaFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
     const pageWidth = page.getWidth();
-    const totalPages = pdfDoc.getPageCount(); // Pega o número total de páginas
 
     const footerTextStart = `${data.numeroProjeto || " "}\nART:${data.artProjeto}`;
     const footerTextMiddle = `Eng. Mec. Cleonis Batista Santos\nEng. Mec. Seg. Thiago Wherman Candido Borges`;
+    // Use a numeração "Página X de Y"
     const footerTextEnd = `C&T.0.1 | ${formatDate(data.inspection.endDate)}\nPágina ${pageNumber} de ${totalPages}`;
 
     // ... (resto da sua função drawMultilineText para desenhar o rodapé)
 }
-
