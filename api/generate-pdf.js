@@ -1,21 +1,31 @@
-// api/generate-pdf.js (CommonJS)
-// Minimal stub that returns a simple Boiler PDF without Firebase.
-// Replace later with real boiler generator.
 
-const { PDFDocument, StandardFonts } = require('pdf-lib');
+const admin = require('firebase-admin');
+const dotenv = require('dotenv');
+const path = require('path');
 
-module.exports = async function generateBoilerPdf(projectId) {
-  const pdfDoc = await PDFDocument.create();
-  const page = pdfDoc.addPage([595.28, 841.89]); // A4
-  const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+// Carrega as variáveis de ambiente do arquivo .env.local
+dotenv.config({ path: path.resolve(__dirname, '../.env.local') });
 
-  const title = 'Relatório de Caldeira (Boiler)';
-  const subtitle = `projectId: ${projectId || '—'}`;
+try {
+  const privateKey = process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n');
+  const clientEmail = process.env.GOOGLE_CLIENT_EMAIL;
+  const projectId = process.env.GOOGLE_PROJECT_ID;
 
-  page.drawText(title, { x: 60, y: 760, size: 18, font });
-  page.drawText('PDF gerado com sucesso ✅', { x: 60, y: 730, size: 12, font });
-  page.drawText(subtitle, { x: 60, y: 710, size: 11, font });
+  if (!privateKey || !clientEmail || !projectId) {
+    throw new Error('Uma ou mais variáveis de ambiente estão faltando.');
+  }
 
-  const bytes = await pdfDoc.save();
-  return Buffer.from(bytes);
-};
+  admin.initializeApp({
+    credential: admin.credential.cert({
+      privateKey,
+      clientEmail,
+      projectId
+    })
+  });
+
+  console.log('✅ Firebase inicializado com sucesso!');
+
+  // TODO: Coloque aqui o restante da lógica de geração de PDF
+} catch (error) {
+  console.error('❌ Erro ao inicializar o Firebase:', error.message);
+}
