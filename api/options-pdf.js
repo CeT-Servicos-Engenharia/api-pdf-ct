@@ -1,10 +1,6 @@
-// api/options-pdf.js (CommonJS)
-const { PDFDocument, StandardFonts } = require('pdf-lib');
-const generateBoilerPdf = require('./generate-pdf');
-const generateOppeningPDF = require('./pdf-oppening');
-const generatePressureVesselPdf = require('./pdf-pressureVessel');
-const generateUpdatePDF = require('./pdf-update');
-const generateMedicalRecordPdf = require('./pdf-medical-record');
+
+// api/options-pdf.js (CommonJS, lazy requires)
+// Evita quebrar no import de módulos (ex.: firebase) antes do ?test=true
 
 module.exports = async function handler(req, res) {
   try {
@@ -13,12 +9,10 @@ module.exports = async function handler(req, res) {
     }
 
     const { projectId, type, update, opening, medicalRecord, test } = req.query;
-    const openingFlag = String(opening) === 'true';
-    const updateFlag = String(update) === 'true';
-    const medicalRecordFlag = String(medicalRecord) === 'true';
 
-    // MODO TESTE: retorna um PDF simples para validar a rota
+    // --- MODO TESTE: gerar um PDF simples sem importar NADA além de pdf-lib ---
     if (String(test) === 'true') {
+      const { PDFDocument, StandardFonts } = require('pdf-lib');
       const pdfDoc = await PDFDocument.create();
       const page = pdfDoc.addPage([595.28, 841.89]); // A4
       const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
@@ -30,13 +24,23 @@ module.exports = async function handler(req, res) {
       return res.status(200).send(Buffer.from(bytes));
     }
 
-    if (!projectId) {
+    // A partir daqui, importar os geradores reais (lazy require)
+    const generateBoilerPdf = require('./generate-pdf');
+    const generateOppeningPDF = require('./pdf-oppening');
+    const generatePressureVesselPdf = require('./pdf-pressureVessel');
+    const generateUpdatePDF = require('./pdf-update');
+    const generateMedicalRecordPdf = require('./pdf-medical-record');
+
+    const openingFlag = String(opening) === 'true';
+    const updateFlag = String(update) === 'true';
+    const medicalRecordFlag = String(medicalRecord) === 'true';
+
+    if (!projectId && !openingFlag && !updateFlag && !medicalRecordFlag) {
       return res.status(400).json({ error: "Parâmetro 'projectId' é obrigatório." });
     }
 
     let pdfBuffer;
 
-    // Flags prioritárias
     if (openingFlag) {
       pdfBuffer = await generateOppeningPDF(projectId);
     } else if (updateFlag) {
@@ -44,7 +48,6 @@ module.exports = async function handler(req, res) {
     } else if (medicalRecordFlag) {
       pdfBuffer = await generateMedicalRecordPdf(projectId);
     } else {
-      // Seleção por type
       switch (type) {
         case 'boiler':
           pdfBuffer = await generateBoilerPdf(projectId);
@@ -53,7 +56,6 @@ module.exports = async function handler(req, res) {
           pdfBuffer = await generatePressureVesselPdf(projectId);
           break;
         default:
-          // fallback seguro
           pdfBuffer = await generateBoilerPdf(projectId);
           break;
       }
