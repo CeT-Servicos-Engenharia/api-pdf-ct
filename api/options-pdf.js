@@ -1,7 +1,4 @@
-
-// api/options-pdf.js (CommonJS, lazy requires)
-// Evita quebrar no import de módulos (ex.: firebase) antes do ?test=true
-
+// api/options-pdf.js (CommonJS, lazy requires, test mode)
 module.exports = async function handler(req, res) {
   try {
     if (req.method !== 'GET') {
@@ -10,7 +7,7 @@ module.exports = async function handler(req, res) {
 
     const { projectId, type, update, opening, medicalRecord, test } = req.query;
 
-    // --- MODO TESTE: gerar um PDF simples sem importar NADA além de pdf-lib ---
+    // --- TEST MODE: returns a simple PDF without importing other modules ---
     if (String(test) === 'true') {
       const { PDFDocument, StandardFonts } = require('pdf-lib');
       const pdfDoc = await PDFDocument.create();
@@ -24,7 +21,7 @@ module.exports = async function handler(req, res) {
       return res.status(200).send(Buffer.from(bytes));
     }
 
-    // A partir daqui, importar os geradores reais (lazy require)
+    // Lazy requires (only after test mode is bypassed)
     const generateBoilerPdf = require('./generate-pdf');
     const generateOppeningPDF = require('./pdf-oppening');
     const generatePressureVesselPdf = require('./pdf-pressureVessel');
@@ -35,7 +32,7 @@ module.exports = async function handler(req, res) {
     const updateFlag = String(update) === 'true';
     const medicalRecordFlag = String(medicalRecord) === 'true';
 
-    if (!projectId && !openingFlag && !updateFlag && !medicalRecordFlag) {
+    if (!projectId && !(openingFlag || updateFlag || medicalRecordFlag)) {
       return res.status(400).json({ error: "Parâmetro 'projectId' é obrigatório." });
     }
 
@@ -56,6 +53,7 @@ module.exports = async function handler(req, res) {
           pdfBuffer = await generatePressureVesselPdf(projectId);
           break;
         default:
+          // fallback seguro
           pdfBuffer = await generateBoilerPdf(projectId);
           break;
       }
