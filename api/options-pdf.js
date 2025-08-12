@@ -2,11 +2,15 @@
 import './lib/firebase-admin.js';
 
 // Importa todos os geradores de PDF.
-import generateBoilerPdf from "./generate-pdf";
-import generateOppeningPDF from "./pdf-oppening";
-import generatePressureVesselPdf from "./pdf-pressureVessel";
-import generateUpdatePDF from "./pdf-update";
-import generateMedicalRecordPdf from "./pdf-medical-record";
+// BLOCO CORRIGIDO
+import './lib/firebase-admin.js'; // Boa prática adicionar .js aqui também
+
+import generateBoilerPdf from "./generate-pdf.js";
+import generateOppeningPDF from "./pdf-oppening.js";
+import generatePressureVesselPdf from "./pdf-pressureVessel.js";
+import generateUpdatePDF from "./pdf-update.js";
+import generateMedicalRecordPdf from "./pdf-medical-record.js";
+
 
 export default async function handler(req, res) {
   console.log("Handler da API 'options-pdf' iniciado.");
