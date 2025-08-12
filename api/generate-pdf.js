@@ -3482,7 +3482,9 @@ async function prepararImagensDeMedicao(pdfDoc, mapOfMedition) {
       // Espaço extra entre parágrafos
       currentY -= lineSpacing * 2;
     }
-  }
+    return { page, y: currentY };
+}
+
 
   page14.drawText("6. RECOMENDAÇÕES ADICIONAIS", {
     x: 50,
@@ -3949,7 +3951,7 @@ async function prepararImagensDeMedicao(pdfDoc, mapOfMedition) {
   let yPosition = 660;
   const lineHeightSumary = 20;
 
-  tocItems.forEach((item) => {
+  tocItems.filter((it) => it && typeof it.title === 'string' && (typeof it.page === 'number' || typeof it.page === 'string')).forEach((item) => {
     const titleX = 50;
     const pageX = 500;
 
