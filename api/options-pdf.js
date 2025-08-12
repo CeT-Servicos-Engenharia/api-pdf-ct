@@ -1,4 +1,5 @@
 // options-pdf.js - DEBUG SAFE (lazy requires + erro detalhado no response)
+// Agora: case "boiler" usa ./pdf-boiler (um wrapper que aponta para pdf-oppening)
 module.exports = async (req, res) => {
   const log = (...a) => console.log("[options-pdf DEBUG]", ...a);
   try {
@@ -45,10 +46,10 @@ module.exports = async (req, res) => {
           break;
         }
         case "boiler": {
-          route = "type=boiler -> generate-pdf";
+          route = "type=boiler -> pdf-boiler";
           log("route:", route);
-          const generatePDF = require("./generate-pdf");
-          pdfBuffer = await generatePDF(projectId);
+          const generateBoilerPDF = require("./pdf-boiler");
+          pdfBuffer = await generateBoilerPDF(projectId);
           break;
         }
         default:
@@ -62,7 +63,6 @@ module.exports = async (req, res) => {
 
   } catch (error) {
     console.error("[options-pdf DEBUG] ERROR:", error);
-    // retorna erro detalhado para diagnóstico
     res.status(500).json({
       error: error?.message || "Erro ao gerar PDF",
       name: error?.name,
