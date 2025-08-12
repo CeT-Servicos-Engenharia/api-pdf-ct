@@ -1,36 +1,33 @@
 const admin = require('firebase-admin');
 
-// Este bloco só roda uma vez em toda a aplicação.
+// Este bloco garante que o Firebase seja inicializado apenas uma vez.
 if (!admin.apps.length) {
   try {
-    console.log("Inicializando Firebase a partir de variáveis de ambiente...");
+    console.log("Inicializando Firebase a partir da variável de ambiente 'FIREBASE_CREDENTIALS'...");
 
-    // Lê as variáveis de ambiente configuradas na Vercel
-    const privateKey = process.env.GOOGLE_PRIVATE_KEY;
-    const clientEmail = process.env.GOOGLE_CLIENT_EMAIL;
-    const projectId = process.env.GOOGLE_PROJECT_ID;
+    // ✅ CORRIGIDO: Lê a única variável de ambiente que você configurou na Vercel.
+    const serviceAccountString = process.env.FIREBASE_CREDENTIALS;
 
-    if (!privateKey || !clientEmail || !projectId) {
-      throw new Error('Variáveis de ambiente do Firebase não foram encontradas. Verifique as configurações na Vercel.');
+    if (!serviceAccountString) {
+      throw new Error("A variável de ambiente 'FIREBASE_CREDENTIALS' não foi encontrada ou está vazia. Verifique as configurações na Vercel.");
     }
 
+    // Converte a string JSON da variável de ambiente em um objeto JavaScript
+    const serviceAccount = JSON.parse(serviceAccountString);
+
+    // Inicializa o Firebase com o objeto de credenciais completo
     admin.initializeApp({
-      credential: admin.credential.cert({
-        privateKey: privateKey.replace(/\\n/g, '\n'), // Garante que as quebras de linha sejam formatadas corretamente
-        clientEmail,
-        projectId
-      })
+      credential: admin.credential.cert(serviceAccount)
     });
 
-    console.log('✅ Firebase inicializado com sucesso!');
+    console.log('✅ Firebase inicializado com sucesso via variável de ambiente!');
 
   } catch (error) {
     console.error('❌ Erro fatal ao inicializar o Firebase:', error.message);
-    // Lançar o erro impede que a aplicação continue sem o Firebase
+    // Lançar o erro impede que a aplicação continue se o Firebase não inicializar.
     throw error;
   }
 }
 
-// Exporta a instância do admin já inicializada
+// Exporta a instância do admin já pronta para ser usada em qualquer lugar.
 module.exports = admin;
-
