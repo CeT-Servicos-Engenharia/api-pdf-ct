@@ -1,9 +1,4 @@
-const generateBoilerPDF = require("./pdf-boiler");
-const generateOppeningPDF = require("./pdf-oppening");
-const generatePressureVesselPdf = require("./pdf-pressureVessel");
-const generateUpdatePDF = require("./pdf-update");
-const generateMedicalRecordPDF = require("./pdf-medical-record");
-
+// options-pdf.js - versão SAFE com requires preguiçosos (evita erro ao carregar módulos)
 module.exports = async (req, res) => {
   try {
     const { projectId, type, opening, update, medicalRecord } = req.query;
@@ -14,43 +9,46 @@ module.exports = async (req, res) => {
 
     let pdfBuffer;
 
-    // Casos específicos de geração direta
+    // Flags diretas (mantidas como antes), mas com import dinâmico
     if (opening === "true") {
+      const generateOppeningPDF = require("./pdf-oppening");
       pdfBuffer = await generateOppeningPDF(projectId);
     } else if (update === "true") {
+      const generateUpdatePDF = require("./pdf-update");
       pdfBuffer = await generateUpdatePDF(projectId);
     } else if (medicalRecord === "true") {
+      const generateMedicalRecordPDF = require("./pdf-medical-record");
       pdfBuffer = await generateMedicalRecordPDF(projectId);
     } else {
-      // Switch de tipos
       switch (type) {
-        case "boiler":
-          // Agora usamos um gerador dedicado (que por ora reusa o opening)
-          pdfBuffer = await generateBoilerPDF(projectId);
-          break;
-
-        case "opening":
-          pdfBuffer = await generateOppeningPDF(projectId);
-          break;
-
-        case "pressure-vessel":
+        case "pressure-vessel": {
+          const generatePressureVesselPdf = require("./pdf-pressureVessel");
           pdfBuffer = await generatePressureVesselPdf(projectId);
           break;
-
+        }
+        case "opening": {
+          const generateOppeningPDF = require("./pdf-oppening");
+          pdfBuffer = await generateOppeningPDF(projectId);
+          break;
+        }
+        case "boiler": {
+          // manter comportamento antigo (apontava para generate-pdf.js)
+          // se esse arquivo não gera nada, vai dar 500 só pra caldeira — que é o estado "antigo"
+          const generatePDF = require("./generate-pdf");
+          pdfBuffer = await generatePDF(projectId);
+          break;
+        }
         default:
-          return res
-            .status(400)
-            .json({ error: "type inválido. Use: boiler | opening | pressure-vessel" });
+          return res.status(400).json({ error: "type inválido. Use: boiler | opening | pressure-vessel" });
       }
     }
 
-    // Resposta
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader("Content-Disposition", `inline; filename="${type || "document"}.pdf"`);
     res.status(200).send(pdfBuffer);
 
   } catch (error) {
-    console.error(error);
+    console.error("[options-pdf SAFE] ERROR:", error);
     res.status(500).json({ error: "Erro interno ao gerar o PDF." });
   }
 };
