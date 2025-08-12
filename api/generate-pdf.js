@@ -1,5 +1,5 @@
 const { PDFDocument, rgb, StandardFonts } = require("pdf-lib");
-const admin = require("./lib/firebase-admin.js"); // ✅ CORRIGIDO: Usa o inicializador central
+const admin = require("./lib/firebase-admin.js"); // ✅ Usa o inicializador central
 const axios = require("axios");
 const fs = require("fs");
 const path = require("path");
@@ -12,7 +12,7 @@ async function getProjectData(projectId) {
   if (!doc.exists) throw new Error(`[Caldeira] Projeto com ID ${projectId} não encontrado.`);
   return doc.data();
 }
-// ... (Suas outras funções de busca: getClientData, getEngenieerData, etc. permanecem iguais)
+
 async function getClientData(clientId) {
   if (!clientId) return null;
   const db = admin.firestore();
@@ -74,4 +74,5 @@ async function generateBoilerPdf(projectId) {
 }
 
 module.exports = generateBoilerPdf;
+
 
