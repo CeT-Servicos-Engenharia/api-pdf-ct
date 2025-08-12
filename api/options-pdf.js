@@ -1,9 +1,7 @@
-// api/options-pdf.js
+// Importa o inicializador primeiro para garantir que o Firebase esteja pronto.
+import './lib/firebase-admin';
 
-// ✅ CORREÇÃO: O caminho agora aponta para a pasta 'lib'
-import './lib/firebase-admin'; 
-
-// O resto do arquivo permanece o mesmo...
+// Importa todos os geradores de PDF.
 import generateBoilerPdf from "./generate-pdf";
 import generateOppeningPDF from "./pdf-oppening";
 import generatePressureVesselPdf from "./pdf-pressureVessel";
@@ -18,20 +16,39 @@ export default async function handler(req, res) {
   }
 
   const { projectId, type, update, opening, medicalRecord } = req.query;
-  // ... (o resto do seu código continua exatamente igual)
-  // ...
+  const updateFlag = update === "true";
+  const openingFlag = opening === "true";
+  const medicalRecordFlag = medicalRecord === "true";
+
+  console.log("Parâmetros recebidos:", req.query);
+
+  if (!projectId) {
+    return res.status(400).json({ error: "O ID do projeto é obrigatório." });
+  }
+
   try {
     let pdfBuffer;
 
-    // ... (sua lógica de switch/case) ...
-    switch (type) {
-      case "boiler":
-        console.log(`Gerando PDF de caldeira para o projeto: ${projectId}`);
-        pdfBuffer = await generateBoilerPdf(projectId);
-        break;
-      // ... outros casos ...
+    if (updateFlag) {
+      pdfBuffer = await generateUpdatePDF(projectId);
+    } else if (openingFlag) {
+      pdfBuffer = await generateOppeningPDF(projectId, type);
+    } else if (medicalRecordFlag) {
+      pdfBuffer = await generateMedicalRecordPdf(projectId);
+    } else {
+      switch (type) {
+        case "boiler":
+          pdfBuffer = await generateBoilerPdf(projectId);
+          break;
+        case "pressure-vessel":
+          pdfBuffer = await generatePressureVesselPdf(projectId);
+          break;
+        default:
+          return res.status(400).json({ error: `Tipo de PDF inválido: ${type}` });
+      }
     }
 
+    console.log("Buffer do PDF gerado com sucesso. Enviando resposta.");
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader("Content-Disposition", `inline; filename=${type || "default"}.pdf`);
     res.send(pdfBuffer);
