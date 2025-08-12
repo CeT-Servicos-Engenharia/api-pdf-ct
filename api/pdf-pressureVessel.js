@@ -5,13 +5,6 @@ const fs = require("fs");
 const path = require("path");
 const { font } = require("pdfkit");
 
-if (!admin.apps.length) {
-  const serviceAccount = require("../nr13-c33f2-firebase-adminsdk-y8x46-0d71dfb66e.json");
-  admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount),
-  });
-}
-
 async function baixarEComprimirTodasImagens(imageUrls) {
   return await Promise.all(
     imageUrls.map(async (url) => {
