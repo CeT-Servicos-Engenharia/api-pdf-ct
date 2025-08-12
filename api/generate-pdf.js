@@ -1,5 +1,5 @@
 import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
-import admin from "./lib/firebase-admin";
+import admin from "./lib/firebase-admin.js";
 import axios from "axios";
 import sharp from "sharp";
 
