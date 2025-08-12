@@ -1,31 +1,7 @@
+// Gerador de PDF - Arquivo placeholder limpo
+// Atualmente não está em uso no fluxo principal
+// Caso necessário, implementar a lógica de geração de PDF aqui seguindo o padrão dos outros geradores
 
-const admin = require('firebase-admin');
-const dotenv = require('dotenv');
-const path = require('path');
-
-// Carrega as variáveis de ambiente do arquivo .env.local
-dotenv.config({ path: path.resolve(__dirname, '../.env.local') });
-
-try {
-  const privateKey = process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n');
-  const clientEmail = process.env.GOOGLE_CLIENT_EMAIL;
-  const projectId = process.env.GOOGLE_PROJECT_ID;
-
-  if (!privateKey || !clientEmail || !projectId) {
-    throw new Error('Uma ou mais variáveis de ambiente estão faltando.');
-  }
-
-  admin.initializeApp({
-    credential: admin.credential.cert({
-      privateKey,
-      clientEmail,
-      projectId
-    })
-  });
-
-  console.log('✅ Firebase inicializado com sucesso!');
-
-  // TODO: Coloque aqui o restante da lógica de geração de PDF
-} catch (error) {
-  console.error('❌ Erro ao inicializar o Firebase:', error.message);
-}
+module.exports = async function generatePDF(projectId) {
+  throw new Error("Geração de PDF não implementada neste arquivo. Use pdf-oppening ou pdf-pressureVessel.");
+};
