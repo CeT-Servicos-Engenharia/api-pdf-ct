@@ -1,25 +1,28 @@
 {
+  "dependencies": {
+    "axios": "^1.7.9",
+    "body-parser": "^1.20.3",
+    "chrome-aws-lambda": "^10.1.0",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.1",
+    "ejs": "^3.1.10",
+    "express": "^4.21.2",
+    "firebase-admin": "^13.0.2",
+    "html-pdf": "^3.0.1",
+    "pdf-lib": "^1.17.1",
+    "pdfkit": "^0.15.2",
+    "pdfmake": "^0.2.16",
+    "puppeteer": "^23.11.1",
+    "sharp": "^0.33.5"
+  },
   "name": "gerador-de-pdf-api",
   "version": "1.0.0",
-  "private": true,
-  "type": "module",
-  "description": "API para geração de relatórios em PDF com base em dados do Firebase.",
-  "main": "api/options-pdf.js",
+  "main": "index.js",
   "scripts": {
-    "test": "echo \"Nenhum teste configurado\" && exit 0"
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "dependencies": {
-    "axios": "^1.7.2",
-    "firebase-admin": "^12.1.0",
-    "pdf-lib": "^1.17.1",
-    "sharp": "^0.33.4"
-  },
-  "keywords": [
-    "pdf",
-    "firebase",
-    "vercel",
-    "api"
-  ],
-  "author": "Seu Nome ou Nome da Empresa",
-  "license": "ISC"
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": ""
 }
