@@ -6,6 +6,74 @@ const path = require("path");
 const sharp = require("sharp");
 
 /* duplicate sharp require removed */
+
+// ===================== Helpers: Firebase image download & compression =====================
+async function downloadImageFromFirebase(url) {
+  try {
+    if (!url) return null;
+
+    // If it's a public HTTP(S) URL (including Firebase Storage download URLs), fetch via axios
+    if (/^https?:\/\//i.test(url)) {
+      const response = await axios.get(url, { responseType: "arraybuffer" });
+      return Buffer.from(response.data);
+    }
+
+    // Otherwise, try Firebase Storage via Admin SDK (gs://bucket/path or raw storage path)
+    const storage = admin.storage();
+    let bucket = storage.bucket(); // default bucket from admin init
+    let filePath = url;
+
+    // gs://bucket/path
+    const gsMatch = typeof url === "string" ? url.match(/^gs:\/\/([^\/]+)\/(.+)$/i) : null;
+    if (gsMatch) {
+      const [, bucketName, path] = gsMatch;
+      bucket = storage.bucket(bucketName);
+      filePath = path;
+    } else {
+      // normalize leading slash
+      if (filePath && filePath.startsWith("/")) filePath = filePath.slice(1);
+    }
+
+    const [buffer] = await bucket.file(filePath).download();
+    return buffer;
+  } catch (err) {
+    console.error("downloadImageFromFirebase failed:", err.message);
+    return null;
+  }
+}
+
+// Baixa uma lista de imagens (urls) e retorna JPEGs comprimidos prontos para embedJpg
+async function baixarEComprimirTodasImagens(urls) {
+  try {
+    if (!Array.isArray(urls)) return [];
+
+    const normalized = urls
+      .map((u) => (typeof u === "string" ? u : (u && (u.url || u.path || u.src)) || null))
+      .filter(Boolean);
+
+    const results = [];
+    for (const url of normalized) {
+      try {
+        const bytes = await downloadImageFromFirebase(url);
+        if (!bytes) {
+          console.warn("Imagem não baixada (vazia):", url);
+          continue;
+        }
+        // Padroniza para JPEG (as grids usam embedJpg)
+        let pipeline = sharp(bytes).rotate().resize({ width: 1000, withoutEnlargement: true });
+        const jpegBuffer = await pipeline.jpeg({ quality: 60 }).toBuffer();
+        results.push({ buffer: jpegBuffer, url });
+      } catch (e) {
+        console.warn("Falha ao otimizar imagem:", url, e.message);
+      }
+    }
+    return results;
+  } catch (err) {
+    console.error("baixarEComprimirTodasImagens falhou:", err.message);
+    return [];
+  }
+}
+// ==========================================================================================
 async function addFirebaseImageToPDF(pdfDoc, page, imageUrl, options = {}) {
   try {
     if (!imageUrl || typeof imageUrl !== "string") {
