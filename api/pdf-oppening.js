@@ -14,14 +14,6 @@ const sharp = require("sharp");
 // No final do arquivo, a exportação já está correta:
 module.exports = generateOppeningPDF;
 
-// Inicialização do Firebase
-if (!admin.apps.length) {
-  const serviceAccount = require("../nr13-c33f2-firebase-adminsdk-y8x46-0d71dfb66e.json");
-  admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount),
-  });
-}
-
 async function downloadImageFromFirebase(url) {
   try {
     const response = await axios.get(url, { responseType: "arraybuffer" });
