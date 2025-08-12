@@ -5,67 +5,184 @@ const fs = require("fs");
 const path = require("path");
 const sharp = require("sharp");
 
-// --- Funções Auxiliares ---
-
 async function baixarEComprimirTodasImagens(imageUrls) {
-    if (!imageUrls || !Array.isArray(imageUrls)) return [];
-    const compressedImages = [];
-    for (const url of imageUrls) {
-        if (!url) continue;
-        try {
-            const response = await axios.get(url, { responseType: "arraybuffer" });
-            const imageBytes = Buffer.from(response.data, "binary");
-            const optimizedBuffer = await sharp(imageBytes).resize({ width: 400 }).jpeg({ quality: 40 }).toBuffer();
-            compressedImages.push({ url, buffer: optimizedBuffer });
-        } catch (error) {
-            console.error("Erro ao baixar/comprimir imagem:", url, error.message);
-        }
+  return await Promise.all(
+    imageUrls.map(async (url) => {
+      try {
+        const response = await axios.get(url, { responseType: "arraybuffer" });
+        const imageBytes = Buffer.from(response.data, "binary");
+
+        // Reduz tamanho e qualidade pra melhorar performance
+        const optimizedBuffer = await sharp(imageBytes)
+          .resize({ width: 400 }) // ou 300, ajustável
+          .jpeg({ quality: 40 })
+          .toBuffer();
+
+        return {
+          url,
+          buffer: optimizedBuffer,
+        };
+      } catch (error) {
+        console.error("Erro ao baixar/comprimir imagem:", url, error.message);
+        return null;
+      }
+    })
+  );
+}
+
+async function downloadImageFromFirebase(url) {
+  try {
+    const response = await axios.get(url, { responseType: "arraybuffer" });
+    if (!response || !response.data) {
+      throw new Error("Imagem não encontrada ou vazia.");
     }
-    return compressedImages;
+    return response.data;
+  } catch (error) {
+    console.error("Erro ao baixar a imagem do Firebase:", error.message);
+    throw new Error("Falha ao baixar a imagem.");
+  }
 }
 
-function formatDate(dateString) {
-    if (!dateString) return "N/A";
-    const date = new Date(dateString);
-    const day = String(date.getDate()).padStart(2, "0");
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const year = date.getFullYear();
-    return `${day}/${month}/${year}`;
+const sharp = require("sharp");
+
+async function addFirebaseImageToPDF(pdfDoc, page, imageUrl, options = {}) {
+  try {
+    if (!imageUrl || typeof imageUrl !== "string") {
+      console.warn("URL inválida ou nula. Ignorando...");
+      return;
+    }
+
+    console.log("Baixando imagem do Firebase:", imageUrl);
+
+    const imageBytes = await downloadImageFromFirebase(imageUrl);
+    if (!imageBytes) {
+      throw new Error("Bytes da imagem estão vazios.");
+    }
+
+    const imageBytesArray = new Uint8Array(imageBytes);
+    const isPng =
+      imageBytesArray[0] === 0x89 &&
+      imageBytesArray[1] === 0x50 &&
+      imageBytesArray[2] === 0x4e &&
+      imageBytesArray[3] === 0x47;
+    const isJpeg =
+      imageBytesArray[0] === 0xff &&
+      imageBytesArray[1] === 0xd8 &&
+      imageBytesArray[2] === 0xff;
+
+    if (!isPng && !isJpeg) {
+      throw new Error(
+        "Formato de imagem não suportado. Apenas PNG e JPEG são aceitos."
+      );
+    }
+
+    console.log("Otimizando a imagem com sharp...");
+    // Use `sharp` para otimizar a imagem
+    const optimizedImageBuffer = await sharp(imageBytes)
+      .resize(400) // Redimensiona para largura máxima de 800px (ajuste conforme necessário)
+      .jpeg({ quality: 30 })
+      .png({ quality: 30 })
+      .toBuffer();
+
+    // Decida o formato da imagem otimizada
+    const optimizedImageBytesArray = new Uint8Array(optimizedImageBuffer);
+    const optimizedIsPng =
+      optimizedImageBytesArray[0] === 0x89 &&
+      optimizedImageBytesArray[1] === 0x50 &&
+      optimizedImageBytesArray[2] === 0x4e &&
+      optimizedImageBytesArray[3] === 0x47;
+
+    const embeddedImage = optimizedIsPng
+      ? await pdfDoc.embedPng(optimizedImageBuffer)
+      : await pdfDoc.embedJpg(optimizedImageBuffer);
+
+    const { x = 50, y = 750, width = 100, height = 100 } = options;
+
+    page.drawImage(embeddedImage, { x, y, width, height });
+    console.log("Imagem otimizada e adicionada com sucesso!");
+  } catch (error) {
+    console.error(
+      "Erro ao adicionar a imagem do Firebase ao PDF:",
+      error.message
+    );
+  }
 }
-
-async function getProjectData(projectId) {
-    const db = admin.firestore();
-    const doc = await db.collection("inspections").doc(projectId).get();
-    if (!doc.exists) throw new Error("Projeto não encontrado");
-    return doc.data();
-}
-
-async function getClientData(clientId) {
-    if (!clientId) return null;
-    const clientDocRef = admin.firestore().doc(`clients/${clientId}`);
-    const clientDoc = await clientDocRef.get();
-    return clientDoc.exists ? clientDoc.data() : null;
-}
-
-async function getEngenieerData(engenieerId) {
-    if (!engenieerId) return null;
-    const engenieerDocRef = admin.firestore().doc(`engenieer/${engenieerId}`);
-    const engenieerDoc = await engenieerDocRef.get();
-    return engenieerDoc.exists ? engenieerDoc.data() : null;
-}
-
-async function getAnalystData(analystId) {
-    if (!analystId) return null;
-    const analystDocRef = admin.firestore().doc(`analyst/${analystId}`);
-    const analystDoc = await analystDocRef.get();
-    return analystDoc.exists ? analystDoc.data() : null;
-}
-
-// --- Função Principal de Geração do PDF ---
-
 
 
 let countPages = 0;
+
+async function fetchImage(url) {
+  try {
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`Erro ao buscar a imagem: ${response.statusText}`);
+    }
+    const arrayBuffer = await response.arrayBuffer();
+    return arrayBuffer;
+  } catch (error) {
+    console.error(`Erro ao carregar a imagem de ${url}: ${error.message}`);
+    return null;
+  }
+}
+
+function formatDate(dateString) {
+  if (!dateString) return "N/A";
+  const date = new Date(dateString);
+  const day = String(date.getDate()).padStart(2, "0");
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const year = date.getFullYear();
+  return `${day}/${month}/${year}`;
+}
+
+async function getProjectData(projectId) {
+  const db = admin.firestore();
+  const doc = await db.collection("inspections").doc(projectId).get();
+  if (!doc.exists) throw new Error("Projeto não encontrado");
+  return doc.data();
+}
+
+async function getClientData(clientId) {
+  if (!clientId) return null;
+  const clientDocRef = admin.firestore().doc(`clients/${clientId}`);
+  const clientDoc = await clientDocRef.get();
+  if (clientDoc.exists) return clientDoc.data();
+  return null;
+}
+
+async function getEngenieerData(engenieerId) {
+  try {
+    const engenieerDocRef = admin.firestore().doc(`engenieer/${engenieerId}`);
+    const engenieerDoc = await engenieerDocRef.get();
+
+    if (engenieerDoc.exists) {
+      return engenieerDoc.data();
+    } else {
+      throw new Error("Engenheiro não encontrado");
+    }
+  } catch (error) {
+    console.error("Erro ao buscar engenheiro:", error.message);
+    throw error; // Relançar o erro para tratamento em outro local
+  }
+}
+
+async function getAnalystData(analystId) {
+  try {
+    console.log("Buscando analista com ID:", analystId);
+    const analystDocRef = admin.firestore().doc(`analyst/${analystId}`);
+    const analystDoc = await analystDocRef.get();
+
+    if (analystDoc.exists) {
+      console.log("Dados do analista encontrados:", analystDoc.data());
+      return analystDoc.data();
+    } else {
+      throw new Error("Analista não encontrado");
+    }
+  } catch (error) {
+    console.error("Erro ao buscar analista:", error.message);
+    throw error;
+  }
+}
+
 async function generatePDF(data, clientData, engenieerData, analystData) {
   const pdfDoc = await PDFDocument.create();
 
