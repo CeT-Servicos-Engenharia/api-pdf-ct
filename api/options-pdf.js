@@ -1,5 +1,5 @@
 // Importa o inicializador primeiro para garantir que o Firebase esteja pronto.
-import './lib/firebase-admin';
+import './lib/firebase-admin.js';
 
 // Importa todos os geradores de PDF.
 import generateBoilerPdf from "./generate-pdf";
