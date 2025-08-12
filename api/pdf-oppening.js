@@ -1,5 +1,5 @@
 import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
-import admin from "./lib/firebase-admin"; // ✅ USA O INICIALIZADOR CENTRAL
+import admin from "./lib/firebase-admin.js"; // ✅ USA O INICIALIZADOR CENTRAL
 import axios from "axios";
 import sharp from "sharp";
 
@@ -80,3 +80,4 @@ async function generateOppeningPDF(projectId) {
 
 // ✅ EXPORTAÇÃO PADRONIZADA
 export default generateOppeningPDF;
+
