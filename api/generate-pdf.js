@@ -5,24 +5,23 @@ const fs = require("fs");
 const path = require("path");
 const sharp = require("sharp");
 
-// --- Funções Auxiliares (Padrão) ---
+// --- Funções Auxiliares ---
 
 async function baixarEComprimirTodasImagens(imageUrls) {
     if (!imageUrls || !Array.isArray(imageUrls)) return [];
-    return Promise.all(
-        imageUrls.map(async (url) => {
-            if (!url) return null;
-            try {
-                const response = await axios.get(url, { responseType: "arraybuffer" });
-                const imageBytes = Buffer.from(response.data, "binary");
-                const optimizedBuffer = await sharp(imageBytes).resize({ width: 400 }).jpeg({ quality: 40 }).toBuffer();
-                return { url, buffer: optimizedBuffer };
-            } catch (error) {
-                console.error("Erro ao baixar/comprimir imagem:", url, error.message);
-                return null;
-            }
-        })
-    );
+    const compressedImages = [];
+    for (const url of imageUrls) {
+        if (!url) continue;
+        try {
+            const response = await axios.get(url, { responseType: "arraybuffer" });
+            const imageBytes = Buffer.from(response.data, "binary");
+            const optimizedBuffer = await sharp(imageBytes).resize({ width: 400 }).jpeg({ quality: 40 }).toBuffer();
+            compressedImages.push({ url, buffer: optimizedBuffer });
+        } catch (error) {
+            console.error("Erro ao baixar/comprimir imagem:", url, error.message);
+        }
+    }
+    return compressedImages;
 }
 
 function formatDate(dateString) {
@@ -89,11 +88,11 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
     // --- Funções de Desenho (internas para manter o escopo) ---
     
     async function addHeader(page) {
-        // ... (código da sua função addHeader)
+        // ... (código da sua função addHeader, idêntico ao pressureVessel)
     }
 
     async function addFooter(page, pageNumber) {
-        // ... (código da sua função addFooter)
+        // ... (código da sua função addFooter, idêntico ao pressureVessel)
     }
 
     // --- Início da Construção das Páginas ---
