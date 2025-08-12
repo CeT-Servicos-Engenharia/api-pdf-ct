@@ -1,11 +1,9 @@
-// ✅ CORRIGIDO: Usa 'require' para importar todos os módulos geradores
 const generateBoilerPdf = require("./generate-pdf.js");
 const generateOppeningPDF = require("./pdf-oppening.js");
 const generatePressureVesselPdf = require("./pdf-pressureVessel.js");
 const generateUpdatePDF = require("./pdf-update.js");
 const generateMedicalRecordPdf = require("./pdf-medical-record.js");
 
-// ✅ CORRIGIDO: Exporta a função handler usando 'module.exports'
 module.exports = async function handler(req, res) {
   console.log("Handler 'options-pdf' iniciado com sintaxe CommonJS.");
 
@@ -18,14 +16,13 @@ module.exports = async function handler(req, res) {
   const openingFlag = opening === "true";
   const medicalRecordFlag = medicalRecord === "true";
 
-  console.log("Parâmetros recebidos:", req.query);
-
   if (!projectId) {
     return res.status(400).json({ error: "O ID do projeto é obrigatório." });
   }
 
   try {
     let pdfBuffer;
+    console.log(`Iniciando geração para tipo: ${type || (updateFlag && 'update') || (openingFlag && 'opening') || 'medicalRecord'}`);
 
     if (updateFlag) {
       pdfBuffer = await generateUpdatePDF(projectId);
@@ -36,11 +33,9 @@ module.exports = async function handler(req, res) {
     } else {
       switch (type) {
         case "boiler":
-          console.log(`Iniciando geração para tipo: ${type}`);
           pdfBuffer = await generateBoilerPdf(projectId);
           break;
         case "pressure-vessel":
-          console.log(`Iniciando geração para tipo: ${type}`);
           pdfBuffer = await generatePressureVesselPdf(projectId);
           break;
         default:
@@ -50,7 +45,7 @@ module.exports = async function handler(req, res) {
 
     console.log("Buffer do PDF gerado. Enviando resposta...");
     res.setHeader("Content-Type", "application/pdf");
-    res.setHeader("Content-Disposition", `inline; filename=${type || "default"}.pdf`);
+    res.setHeader("Content-Disposition", `inline; filename="relatorio.pdf"`);
     res.send(pdfBuffer);
 
   } catch (error) {
