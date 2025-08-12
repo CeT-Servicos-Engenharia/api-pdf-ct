@@ -3548,9 +3548,7 @@ async function prepararImagensDeMedicao(pdfDoc, mapOfMedition) {
       }
     }
   }
-  await drawIndentedJustifiedText(
-    page14,
-    "A caldeira não deve permanecer em operação sozinha, deve sempre ser acompanhada pelo operador credenciado, conforme preconiza a legislação vigente, Portaria do Ministério do trabalho 3214 NR-13 item 13.4.3.4. Este item é imprescindível, nenhuma responsabilidade cabe ao inspetor se este item não for realizado conforme preconiza a legislação.\nDeve ser dada descarga de fundo na caldeira, atendendo as recomendações de responsável pelo tratamento de água.",
+  const __retRS = await drawIndentedJustifiedText(page14, "A caldeira não deve permanecer em operação sozinha, deve sempre ser acompanhada pelo operador credenciado, conforme preconiza a legislação vigente, Portaria do Ministério do trabalho 3214 NR-13 item 13.4.3.4. Este item é imprescindível, nenhuma responsabilidade cabe ao inspetor se este item não for realizado conforme preconiza a legislação.\nDeve ser dada descarga de fundo na caldeira, atendendo as recomendações de responsável pelo tratamento de água.",
     50, // Margem esquerda
     640, // Posição inicial no eixo Y
     480, // Largura máxima
@@ -3559,6 +3557,8 @@ async function prepararImagensDeMedicao(pdfDoc, mapOfMedition) {
     4, // Espaçamento entre linhas
     20 // Tamanho do recuo na primeira linha do parágrafo
   );
+  page14 = __retRS.page;
+  var _yAfter = __retRS.y;
 
   page14.drawText("RECOMENDAÇÕES COMPLEMENTARES", {
     x: 50,
