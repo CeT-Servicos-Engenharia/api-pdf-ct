@@ -5,46 +5,7 @@ const fs = require("fs");
 const path = require("path");
 const sharp = require("sharp");
 
-async function baixarEComprimirTodasImagens(imageUrls) {
-  return await Promise.all(
-    imageUrls.map(async (url) => {
-      try {
-        const response = await axios.get(url, { responseType: "arraybuffer" });
-        const imageBytes = Buffer.from(response.data, "binary");
-
-        // Reduz tamanho e qualidade pra melhorar performance
-        const optimizedBuffer = await sharp(imageBytes)
-          .resize({ width: 400 }) // ou 300, ajustável
-          .jpeg({ quality: 40 })
-          .toBuffer();
-
-        return {
-          url,
-          buffer: optimizedBuffer,
-        };
-      } catch (error) {
-        console.error("Erro ao baixar/comprimir imagem:", url, error.message);
-        return null;
-      }
-    })
-  );
-}
-
-async function downloadImageFromFirebase(url) {
-  try {
-    const response = await axios.get(url, { responseType: "arraybuffer" });
-    if (!response || !response.data) {
-      throw new Error("Imagem não encontrada ou vazia.");
-    }
-    return response.data;
-  } catch (error) {
-    console.error("Erro ao baixar a imagem do Firebase:", error.message);
-    throw new Error("Falha ao baixar a imagem.");
-  }
-}
-
-const sharp = require("sharp");
-
+/* duplicate sharp require removed */
 async function addFirebaseImageToPDF(pdfDoc, page, imageUrl, options = {}) {
   try {
     if (!imageUrl || typeof imageUrl !== "string") {
@@ -78,13 +39,11 @@ async function addFirebaseImageToPDF(pdfDoc, page, imageUrl, options = {}) {
 
     console.log("Otimizando a imagem com sharp...");
     // Use `sharp` para otimizar a imagem
-    const optimizedImageBuffer = await sharp(imageBytes)
-      .resize(400) // Redimensiona para largura máxima de 800px (ajuste conforme necessário)
-      .jpeg({ quality: 30 })
-      .png({ quality: 30 })
-      .toBuffer();
-
-    // Decida o formato da imagem otimizada
+    let pipeline = sharp(imageBytes).resize({ width: 400, withoutEnlargement: true });
+const optimizedImageBuffer = isPng
+  ? await pipeline.png({ compressionLevel: 9 }).toBuffer()
+  : await pipeline.jpeg({ quality: 60 }).toBuffer();
+// Decida o formato da imagem otimizada
     const optimizedImageBytesArray = new Uint8Array(optimizedImageBuffer);
     const optimizedIsPng =
       optimizedImageBytesArray[0] === 0x89 &&
