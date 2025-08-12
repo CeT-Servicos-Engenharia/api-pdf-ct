@@ -1,0 +1,36 @@
+# Dependências
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Arquivos de ambiente (NUNCA commitar)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Arquivos de build
+.next/
+out/
+build/
+dist/
+
+# Logs
+logs
+*.log
+
+# Arquivos temporários
+.DS_Store
+.vscode/
+.idea/
+
+# Arquivos de teste e output
+output/
+temp/
+*.pdf
+
+# Vercel
+.vercel
+

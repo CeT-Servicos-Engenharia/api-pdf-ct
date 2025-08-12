@@ -1,14 +1,13 @@
 {
   "version": 2,
-  "routes": [
-    {
-      "src": "/api/options-pdf",
-      "dest": "/api/options-pdf.js"
-    }
-  ],
   "functions": {
     "api/options-pdf.js": {
-      "maxDuration": 60
+      "maxDuration": 60,
+      "memory": 1024
     }
+  },
+  "env": {
+    "NODE_ENV": "production"
   }
 }
+
