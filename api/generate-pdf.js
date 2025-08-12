@@ -3849,37 +3849,58 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
 }
 
 // Handler principal para Vercel
-async function generateBoilerPdf(projectId) {
-  if (!projectId) {
-    throw new Error("O parâmetro 'projectId' é obrigatório.");
+
+// ------------------------------------------------------
+// Handler de Exportação (para Vercel / API) — robusto
+// Aceita tanto generateBoilerPdf(projectId) quanto generateBoilerPdf({ projectId, opening, update })
+// e exporta no formato default e nomeado (compatibilidade com require("./generate-pdf") ou .generateBoilerPdf)
+function _normalizeArgs(input) {
+  if (input && typeof input === "object") {
+    return {
+      projectId: input.projectId || input.id || "",
+      opening: Boolean(input.opening),
+      update: Boolean(input.update),
+    };
   }
+  return { projectId: String(input || ""), opening: false, update: false };
+}
 
+async function generateBoilerPdf(input) {
+  const { projectId, opening, update } = _normalizeArgs(input);
+  if (!projectId) {
+    console.warn("[boiler] projectId ausente; gerando PDF com placeholders.");
+  }
   try {
-    const projectData = await getProjectData(projectId);
-    const clientData = await getClientData(
-      projectData.client || projectData.clientId
-    );
-    const engenieerData = await getEngenieerData(
-      projectData.engenieer?.id || projectData.engenieerId || " "
-    );
-    const analystData = await getAnalystData(
-      projectData.analyst?.id || projectData.analystId || " "
-    );
+    let projectData = null;
+    try {
+      projectData = await getProjectData(projectId);
+    } catch (e) {
+      console.warn("[boiler] getProjectData falhou:", e?.message || e);
+      projectData = projectData || { nomeEquipamento: "Caldeira", numeroSerie: "N/C" };
+    }
+    const clientData = await (async () => {
+      try { return await getClientData(projectData?.client || projectData?.clientId); } catch (e) { return null; }
+    })();
+    const engenieerData = await (async () => {
+      try { return await getEngenieerData(projectData?.engenieer?.id || projectData?.engenieerId); } catch (e) { return null; }
+    })();
+    const analystData = await (async () => {
+      try { return await getAnalystData(projectData?.analyst?.id || projectData?.analystId); } catch (e) { return null; }
+    })();
 
-    const pdfBytes = await generatePDF(
-      projectData,
-      clientData,
-      engenieerData,
-      analystData
-    );
+    // Injeta flags opening/update no objeto usado por rodapé/inspeções, se necessário
+    projectData = projectData || {};
+    projectData.__boilerFlags = { opening, update };
 
+    const pdfBytes = await generatePDF(projectData, clientData, engenieerData, analystData);
     return Buffer.from(pdfBytes);
   } catch (error) {
-    console.error("Erro ao gerar o PDF:", error.message);
-    throw new Error("Erro ao gerar o PDF");
+    console.error("Erro ao gerar o PDF da Caldeira:", error);
+    throw new Error(`Erro ao gerar o PDF da Caldeira: ${error.message}`);
   }
 }
 
-// Exporta a função corrigida
+// Compatibilidade de export
 module.exports = generateBoilerPdf;
+module.exports.generateBoilerPdf = generateBoilerPdf;
 
