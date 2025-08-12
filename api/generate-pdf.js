@@ -1820,7 +1820,26 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
     font: helveticaBoldFont,
   });
 
-  async function prepararImagensDeMedicao(pdfDoc, mapOfMedition) {
+  
+function getMapOfMedition(data) {
+  try {
+    const cand = [
+      data?.inspection?.mapOfMedition,
+      data?.inspection?.mapOfMeasurement,
+      data?.inspection?.mapOfMedicao,
+      data?.inspection?.meditionMap,
+      data?.inspection?.measurementMap,
+    ];
+    for (const c of cand) {
+      if (c && typeof c === "object" && Object.keys(c).length) return c;
+    }
+    return {};
+  } catch (e) {
+    return {};
+  }
+}
+
+async function prepararImagensDeMedicao(pdfDoc, mapOfMedition) {
     const imagens = {};
 
     for (const key of Object.keys(mapOfMedition || {})) {
@@ -1866,7 +1885,7 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
 
     // Verifica se existem medições
     const filteredMeditionData = Object.entries(
-      data.inspection.mapOfMedition || {}
+      getMapOfMedition(data) || {}
     ).filter(([key, value]) =>
       Object.keys(value).some(
         (subKey) =>
@@ -2004,7 +2023,7 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
 
   }
 
-  const imagensDeMedicaoOtimizadas = await prepararImagensDeMedicao(pdfDoc, data.inspection.mapOfMedition);
+  const imagensDeMedicaoOtimizadas = await prepararImagensDeMedicao(pdfDoc, getMapOfMedition(data));
 
   await addInspectionDataToPDF(
     page9,
@@ -3543,7 +3562,7 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
 
   page14.drawText("RECOMENDAÇÕES COMPLEMENTARES", {
     x: 50,
-    y: 510,
+    y: (_yAfter ? Math.max(_yAfter - 20, 520) : 510),
     size: 16,
     font: helveticaBoldFont,
   });
