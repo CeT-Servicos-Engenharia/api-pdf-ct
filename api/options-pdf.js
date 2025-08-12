@@ -1,72 +1,58 @@
-// options-pdf.js - DEBUG SAFE (lazy requires + erro detalhado no response)
-// Agora: case "boiler" usa ./pdf-boiler (um wrapper que aponta para pdf-oppening)
-module.exports = async (req, res) => {
-  const log = (...a) => console.log("[options-pdf DEBUG]", ...a);
+import generateBoilerPdf from "./generate-pdf";
+import generateOppeningPDF from "./pdf-oppening";
+import generatePressureVesselPdf from "./pdf-pressureVessel";
+import generateUpdatePDF from "./pdf-update";
+import generateMedicalRecordPdf from "./pdf-medical-record";
+
+export default async function handler(req, res) {
+  console.log("Entrou no options-pdf!");
+
+  if (req.method !== "GET") {
+    return res.status(405).json({ error: "Método não permitido" });
+  }
+
+  const { projectId, type, update, opening, medicalRecord } = req.query;
+  const updateFlag = update === "true";
+  const openingFlag = opening === "true";
+  const medicalRecordFlag = medicalRecord === "true";
+
+  console.log("Parâmetros recebidos:", req.query);
+  console.log(`update: ${updateFlag}, opening: ${openingFlag}`);
+  console.log(`medicalRecord: ${medicalRecordFlag}`);
+  if (!projectId) {
+    return res.status(400).json({ error: "O ID do projeto é obrigatório." });
+  }
+
   try {
-    const { projectId, type, opening, update, medicalRecord } = req.query;
-
-    log("query:", { projectId, type, opening, update, medicalRecord });
-
-    if (!projectId) {
-      return res.status(400).json({ error: "projectId é obrigatório" });
-    }
-
     let pdfBuffer;
-    let route = "unknown";
 
-    if (opening === "true") {
-      route = "opening=true";
-      log("route:", route);
-      const generateOppeningPDF = require("./pdf-oppening");
-      pdfBuffer = await generateOppeningPDF(projectId);
-    } else if (update === "true") {
-      route = "update=true";
-      log("route:", route);
-      const generateUpdatePDF = require("./pdf-update");
+    if (updateFlag) {
       pdfBuffer = await generateUpdatePDF(projectId);
-    } else if (medicalRecord === "true") {
-      route = "medicalRecord=true";
-      log("route:", route);
-      const generateMedicalRecordPDF = require("./pdf-medical-record");
-      pdfBuffer = await generateMedicalRecordPDF(projectId);
+    } else if (openingFlag) {
+      console.log("Gerando termo de abertura");
+      pdfBuffer = await generateOppeningPDF(projectId, type);
+    } else if (medicalRecordFlag) {
+      console.log("Gerando prontuário reconstituído");
+      pdfBuffer = await generateMedicalRecordPdf(projectId);
     } else {
       switch (type) {
-        case "pressure-vessel": {
-          route = "type=pressure-vessel";
-          log("route:", route);
-          const generatePressureVesselPdf = require("./pdf-pressureVessel");
+        case "boiler":
+          pdfBuffer = await generateBoilerPdf(projectId);
+          break;
+        case "pressure-vessel":
           pdfBuffer = await generatePressureVesselPdf(projectId);
           break;
-        }
-        case "opening": {
-          route = "type=opening";
-          log("route:", route);
-          const generateOppeningPDF = require("./pdf-oppening");
-          pdfBuffer = await generateOppeningPDF(projectId);
-          break;
-        }
-        case "boiler": {
-          route = "type=boiler -> pdf-boiler";
-          log("route:", route);
-          const generateBoilerPDF = require("./pdf-boiler");
-          pdfBuffer = await generateBoilerPDF(projectId);
-          break;
-        }
         default:
-          return res.status(400).json({ error: "type inválido. Use: boiler | opening | pressure-vessel", received: type });
+          pdfBuffer = await generateDefaultPDF(projectId);
+          break;
       }
     }
 
     res.setHeader("Content-Type", "application/pdf");
-    res.setHeader("Content-Disposition", `inline; filename="${type || "document"}.pdf"`);
-    res.status(200).send(pdfBuffer);
-
+    res.setHeader("Content-Disposition", `inline; filename=${type || "default"}.pdf`);
+    res.send(pdfBuffer);
   } catch (error) {
-    console.error("[options-pdf DEBUG] ERROR:", error);
-    res.status(500).json({
-      error: error?.message || "Erro ao gerar PDF",
-      name: error?.name,
-      stack: error?.stack
-    });
+    console.error("Erro ao gerar PDF:", error);
+    res.status(500).json({ error: "Erro interno ao gerar o PDF." });
   }
-};
+}
