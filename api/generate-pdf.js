@@ -1820,26 +1820,7 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
     font: helveticaBoldFont,
   });
 
-  
-function getMapOfMedition(data) {
-  try {
-    const cand = [
-      data?.inspection?.mapOfMedition,
-      data?.inspection?.mapOfMeasurement,
-      data?.inspection?.mapOfMedicao,
-      data?.inspection?.meditionMap,
-      data?.inspection?.measurementMap,
-    ];
-    for (const c of cand) {
-      if (c && typeof c === "object" && Object.keys(c).length) return c;
-    }
-    return {};
-  } catch (e) {
-    return {};
-  }
-}
-
-async function prepararImagensDeMedicao(pdfDoc, mapOfMedition) {
+  async function prepararImagensDeMedicao(pdfDoc, mapOfMedition) {
     const imagens = {};
 
     for (const key of Object.keys(mapOfMedition || {})) {
@@ -1885,7 +1866,7 @@ async function prepararImagensDeMedicao(pdfDoc, mapOfMedition) {
 
     // Verifica se existem medições
     const filteredMeditionData = Object.entries(
-      getMapOfMedition(data) || {}
+      data.inspection.mapOfMedition || {}
     ).filter(([key, value]) =>
       Object.keys(value).some(
         (subKey) =>
@@ -2023,7 +2004,7 @@ async function prepararImagensDeMedicao(pdfDoc, mapOfMedition) {
 
   }
 
-  const imagensDeMedicaoOtimizadas = await prepararImagensDeMedicao(pdfDoc, getMapOfMedition(data));
+  const imagensDeMedicaoOtimizadas = await prepararImagensDeMedicao(pdfDoc, data.inspection.mapOfMedition);
 
   await addInspectionDataToPDF(
     page9,
@@ -3482,9 +3463,7 @@ async function prepararImagensDeMedicao(pdfDoc, mapOfMedition) {
       // Espaço extra entre parágrafos
       currentY -= lineSpacing * 2;
     }
-    return { page, y: currentY };
-}
-
+  }
 
   page14.drawText("6. RECOMENDAÇÕES ADICIONAIS", {
     x: 50,
@@ -3550,7 +3529,9 @@ async function prepararImagensDeMedicao(pdfDoc, mapOfMedition) {
       }
     }
   }
-  const __retRS = await drawIndentedJustifiedText(page14, "A caldeira não deve permanecer em operação sozinha, deve sempre ser acompanhada pelo operador credenciado, conforme preconiza a legislação vigente, Portaria do Ministério do trabalho 3214 NR-13 item 13.4.3.4. Este item é imprescindível, nenhuma responsabilidade cabe ao inspetor se este item não for realizado conforme preconiza a legislação.\nDeve ser dada descarga de fundo na caldeira, atendendo as recomendações de responsável pelo tratamento de água.",
+  await drawIndentedJustifiedText(
+    page14,
+    "A caldeira não deve permanecer em operação sozinha, deve sempre ser acompanhada pelo operador credenciado, conforme preconiza a legislação vigente, Portaria do Ministério do trabalho 3214 NR-13 item 13.4.3.4. Este item é imprescindível, nenhuma responsabilidade cabe ao inspetor se este item não for realizado conforme preconiza a legislação.\nDeve ser dada descarga de fundo na caldeira, atendendo as recomendações de responsável pelo tratamento de água.",
     50, // Margem esquerda
     640, // Posição inicial no eixo Y
     480, // Largura máxima
@@ -3559,12 +3540,10 @@ async function prepararImagensDeMedicao(pdfDoc, mapOfMedition) {
     4, // Espaçamento entre linhas
     20 // Tamanho do recuo na primeira linha do parágrafo
   );
-  page14 = __retRS.page;
-  var _yAfter = __retRS.y;
 
   page14.drawText("RECOMENDAÇÕES COMPLEMENTARES", {
     x: 50,
-    y: (_yAfter ? Math.max(_yAfter - 20, 520) : 510),
+    y: 510,
     size: 16,
     font: helveticaBoldFont,
   });
@@ -3951,7 +3930,7 @@ async function prepararImagensDeMedicao(pdfDoc, mapOfMedition) {
   let yPosition = 660;
   const lineHeightSumary = 20;
 
-  tocItems.filter((it) => it && typeof it.title === 'string' && (typeof it.page === 'number' || typeof it.page === 'string')).forEach((item) => {
+  tocItems.forEach((item) => {
     const titleX = 50;
     const pageX = 500;
 
