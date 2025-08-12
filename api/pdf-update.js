@@ -1,8 +1,18 @@
 const { PDFDocument, rgb, StandardFonts } = require("pdf-lib");
-const admin = require("firebase-admin");
+const admin = require("./lib/firebase-admin.js"); // ✅ CORRIGIDO: Usa o inicializador central
 const fs = require("fs");
 const path = require("path");
 const axios = require("axios");
+const sharp = require("sharp");
+
+// O resto do seu código para pdf-update.js permanece exatamente o mesmo...
+// (addHeader, addFooter, generatePDF, generateUpdatePDF, etc.)
+// ...
+// ... (cole o resto do seu código original aqui)
+// ...
+
+// No final do arquivo, a exportação já está correta:
+module.exports = generateUpdatePDF;
 
 // Inicialização do Firebase
 if (!admin.apps.length) {

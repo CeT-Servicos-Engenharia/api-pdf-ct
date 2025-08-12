@@ -1,8 +1,18 @@
 const { PDFDocument, rgb, StandardFonts } = require("pdf-lib");
-const admin = require("firebase-admin");
+const admin = require("./lib/firebase-admin.js"); // ✅ CORRIGIDO: Usa o inicializador central
+const axios = require("axios");
 const fs = require("fs");
 const path = require("path");
-const axios = require("axios");
+const sharp = require("sharp");
+
+// O resto do seu código para pdf-medical-record.js permanece exatamente o mesmo...
+// (addHeader, addFooter, generateMedicalRecordPDF, etc.)
+// ...
+// ... (cole o resto do seu código original aqui)
+// ...
+
+// No final do arquivo, a exportação já está correta:
+module.exports = generateMedicalRecordPdf;
 
 // Inicialização do Firebase
 if (!admin.apps.length) {
