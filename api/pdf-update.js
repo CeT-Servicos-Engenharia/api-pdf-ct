@@ -262,20 +262,22 @@ async function generatePDF(projectData, clientData, engenieerData) {
   const lineEndX = 598.28 * 0.75;
   page.drawLine({ start: { x: lineStartX, y: 149 }, end: { x: lineEndX, y: 148 }, thickness: 1, color: rgb(0, 0, 0), opacity: 1 });
   
-  const text1 = "Resp. Téc Cleonis Batista Santos";
-  const text1Width = helveticaFont.widthOfTextAtSize(text1, 12);
-  const text1X = (598.28 - text1Width) / 2;
-  page.drawText(text1, { x: text1X, y: 136, size: 12, color: rgb(0, 0, 0), font: helveticaFont });
-  
-  const text2 = `CREA ${engenieerData.crea}`;
-  const text2Width = helveticaFont.widthOfTextAtSize(text2, 12);
-  const text2X = (598.28 - text2Width) / 2;
-  page.drawText(text2, { x: text2X, y: 122, size: 12, color: rgb(0, 0, 0), font: helveticaFont });
-  
-  const text3 = "Engenheiro Mecânico/Segurança";
-  const text3Width = helveticaFont.widthOfTextAtSize(text3, 12);
-  const text3X = (598.28 - text3Width) / 2;
-  page.drawText(text3, { x: text3X, y: 110, size: 12, color: rgb(0, 0, 0), font: helveticaFont });
+const text1 = `Resp. Téc ${engenieerData.name}`; 
+const text1Width = helveticaFont.widthOfTextAtSize(text1, 12);
+const text1X = (598.28 - text1Width) / 2;
+page.drawText(text1, { x: text1X, y: 136, size: 12, color: rgb(0, 0, 0), font: helveticaFont });
+
+// 2. O CREA e a especialidade já estão corretos, usando 'engenieerData'
+const text2 = `CREA ${engenieerData.crea}`;
+const text2Width = helveticaFont.widthOfTextAtSize(text2, 12);
+const text2X = (598.28 - text2Width) / 2;
+page.drawText(text2, { x: text2X, y: 122, size: 12, color: rgb(0, 0, 0), font: helveticaFont });
+
+// 3. A especialidade também já estava correta
+const text3 = "Engenheiro Mecânico/Segurança";
+const text3Width = helveticaFont.widthOfTextAtSize(text3, 12);
+const text3X = (598.28 - text3Width) / 2;
+page.drawText(text3, { x: text3X, y: 110, size: 12, color: rgb(0, 0, 0), font: helveticaFont });
   
   await addFooter(pdfDoc, page, projectData, 1);
   const pdfBytes = await pdfDoc.save();
