@@ -1,58 +1,56 @@
-import generateBoilerPdf from "./generate-pdf";
-import generateOppeningPDF from "./pdf-oppening";
-import generatePressureVesselPdf from "./pdf-pressureVessel";
-import generateUpdatePDF from "./pdf-update";
-import generateMedicalRecordPdf from "./pdf-medical-record";
+const generateBoilerPDF = require("./pdf-boiler");
+const generateOppeningPDF = require("./pdf-oppening");
+const generatePressureVesselPdf = require("./pdf-pressureVessel");
+const generateUpdatePDF = require("./pdf-update");
+const generateMedicalRecordPDF = require("./pdf-medical-record");
 
-export default async function handler(req, res) {
-  console.log("Entrou no options-pdf!");
-
-  if (req.method !== "GET") {
-    return res.status(405).json({ error: "Método não permitido" });
-  }
-
-  const { projectId, type, update, opening, medicalRecord } = req.query;
-  const updateFlag = update === "true";
-  const openingFlag = opening === "true";
-  const medicalRecordFlag = medicalRecord === "true";
-
-  console.log("Parâmetros recebidos:", req.query);
-  console.log(`update: ${updateFlag}, opening: ${openingFlag}`);
-  console.log(`medicalRecord: ${medicalRecordFlag}`);
-  if (!projectId) {
-    return res.status(400).json({ error: "O ID do projeto é obrigatório." });
-  }
-
+module.exports = async (req, res) => {
   try {
+    const { projectId, type, opening, update, medicalRecord } = req.query;
+
+    if (!projectId) {
+      return res.status(400).json({ error: "projectId é obrigatório" });
+    }
+
     let pdfBuffer;
 
-    if (updateFlag) {
+    // Casos específicos de geração direta
+    if (opening === "true") {
+      pdfBuffer = await generateOppeningPDF(projectId);
+    } else if (update === "true") {
       pdfBuffer = await generateUpdatePDF(projectId);
-    } else if (openingFlag) {
-      console.log("Gerando termo de abertura");
-      pdfBuffer = await generateOppeningPDF(projectId, type);
-    } else if (medicalRecordFlag) {
-      console.log("Gerando prontuário reconstituído");
-      pdfBuffer = await generateMedicalRecordPdf(projectId);
+    } else if (medicalRecord === "true") {
+      pdfBuffer = await generateMedicalRecordPDF(projectId);
     } else {
+      // Switch de tipos
       switch (type) {
         case "boiler":
-          pdfBuffer = await generateBoilerPdf(projectId);
+          // Agora usamos um gerador dedicado (que por ora reusa o opening)
+          pdfBuffer = await generateBoilerPDF(projectId);
           break;
+
+        case "opening":
+          pdfBuffer = await generateOppeningPDF(projectId);
+          break;
+
         case "pressure-vessel":
           pdfBuffer = await generatePressureVesselPdf(projectId);
           break;
+
         default:
-          pdfBuffer = await generateDefaultPDF(projectId);
-          break;
+          return res
+            .status(400)
+            .json({ error: "type inválido. Use: boiler | opening | pressure-vessel" });
       }
     }
 
+    // Resposta
     res.setHeader("Content-Type", "application/pdf");
-    res.setHeader("Content-Disposition", `inline; filename=${type || "default"}.pdf`);
-    res.send(pdfBuffer);
+    res.setHeader("Content-Disposition", `inline; filename="${type || "document"}.pdf"`);
+    res.status(200).send(pdfBuffer);
+
   } catch (error) {
-    console.error("Erro ao gerar PDF:", error);
+    console.error(error);
     res.status(500).json({ error: "Erro interno ao gerar o PDF." });
   }
-}
+};
