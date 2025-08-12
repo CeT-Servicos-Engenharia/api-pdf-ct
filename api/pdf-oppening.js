@@ -81,3 +81,4 @@ async function generateOppeningPDF(projectId) {
 // ✅ EXPORTAÇÃO PADRONIZADA
 export default generateOppeningPDF;
 
+
