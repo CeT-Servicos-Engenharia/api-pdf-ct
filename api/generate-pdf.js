@@ -3384,7 +3384,8 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
     fontSize,
     lineSpacing,
     indentSize
-  ) {const paragraphs = text.split("\n");
+  ) {const paragraphs = text.split("
+");
     let currentY = y;
     const BOTTOM_MARGIN = 90; // espaço do rodapé
     const TOP_RESET_Y = 700;
