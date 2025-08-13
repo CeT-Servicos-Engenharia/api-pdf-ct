@@ -3379,17 +3379,6 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
 
   await addHeader(pdfDoc, page14, clientData, headerAssets);
 
-  async function drawIndentedJustifiedText(
-    page,
-    text,
-    x,
-    y,
-    maxWidth,
-    font,
-    fontSize,
-    lineSpacing,
-    indentSize
-  ) 
 async function drawIndentedJustifiedText(
     pageRef,
     text,
@@ -4057,4 +4046,3 @@ async function generateBoilerPdf(projectId) {
 
 // Exporta a função corrigida
 module.exports = generateBoilerPdf;
-
