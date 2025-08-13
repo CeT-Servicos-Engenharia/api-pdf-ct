@@ -226,8 +226,10 @@ async function drawJustifiedText(ctx, text, options) {
 
         for (const word of words) {
             const testLine = [...currentLine, word].join(" ");
+            // Remove newlines for width calculation to avoid WinAnsi encoding error
+            const cleanTestLine = testLine.replace(/\n/g, ' '); 
             const effectiveMaxWidth = isFirstLineOfParagraph ? maxWidth - indentSize : maxWidth;
-            if (font.widthOfTextAtSize(testLine, fontSize) > effectiveMaxWidth && currentLine.length > 0) {
+            if (font.widthOfTextAtSize(cleanTestLine, fontSize) > effectiveMaxWidth && currentLine.length > 0) {
                 lines.push({ words: currentLine, isFirst: isFirstLineOfParagraph });
                 currentLine = [word];
                 isFirstLineOfParagraph = false;
@@ -297,7 +299,7 @@ async function drawTable(ctx, startX, columnWidths, data, headerFont, bodyFont, 
         });
         ctx.currentPage.drawText(cell, {
             x: x + 10,
-            y: ctx.cursorY - headerHeight / 2 - headerFont.heightAtSize(10) / 2, // Corrigido aqui
+            y: ctx.cursorY - headerHeight / 2 - headerFont.heightAtSize(10) / 2, 
             size: 10,
             font: headerFont,
             color: rgb(1, 1, 1),
@@ -322,7 +324,9 @@ async function drawTable(ctx, startX, columnWidths, data, headerFont, bodyFont, 
                 borderWidth: 1,
             });
 
-            const wrappedText = wrapText(cell, columnWidths[columnIndex] - 20, bodyFont, 10); // 20 para padding
+            // Ensure text is clean before wrapping and drawing
+            const cleanCell = cell.replace(/\n/g, ' '); // Remove newlines for consistent measurement
+            const wrappedText = wrapText(cleanCell, columnWidths[columnIndex] - 20, bodyFont, 10); // 20 para padding
             wrappedText.forEach((line, lineIndex) => {
                 ctx.currentPage.drawText(line, {
                     x: x + 10,
@@ -344,7 +348,9 @@ function wrapText(text, maxWidth, font, fontSize) {
 
     for (const word of words) {
         const testLine = currentLine ? `${currentLine} ${word}` : word;
-        const testWidth = font.widthOfTextAtSize(testLine, fontSize);
+        // Remove newlines for width calculation to avoid WinAnsi encoding error
+        const cleanTestLine = testLine.replace(/\n/g, ' '); 
+        const testWidth = font.widthOfTextAtSize(cleanTestLine, fontSize);
 
         if (testWidth > maxWidth && currentLine) {
             lines.push(currentLine);
@@ -529,8 +535,10 @@ async function generatePDF(projectData, clientData, engineerData, analystData) {
     const tableDataRegistrationData = [
         ["CLIENTE", "ELABORAÇÃO"],
         [
-            `  ${clientData?.person || " "} \n\n        ${clientData?.address || " "}, ${clientData?.neighborhood || " "}, ${clientData?.number || " "} \n\n        CEP: ${clientData?.cep || " "} \n\n        CNPJ: ${clientData?.cnpj || " "} \n\n        TEL.: ${clientData?.phone || " "} \n\n        E-mail: ${clientData?.email || " "}`,
-            ` ${engineerData?.name || " "} \n\n        ${engineerData?.address || " "}, ${engineerData?.neighborhood || " "}, ${engineerData?.number || " "} \n\n        CEP: ${engineerData?.cep || " "} \n\n        CNPJ: ${engineerData?.cnpj || " "} \n\n        CREA: ${engineerData?.crea || " "} \n\n        TEL.: ${engineerData?.phone || " "} \n\n        E-mail: ${engineerData?.email || " "}`,
+            `  ${clientData?.person || " "} \n\n        ${clientData?.address || " "}, ${clientData?.neighborhood || " "}, ${clientData?.number || " "
+      } \n\n        CEP: ${clientData?.cep || " "} \n\n        CNPJ: ${clientData?.cnpj || " "} \n\n        TEL.: ${clientData?.phone || " "} \n\n        E-mail: ${clientData?.email || " "}`,
+            ` ${engineerData?.name || " "} \n\n        ${engineerData?.address || " "}, ${engineerData?.neighborhood || " "
+      }, ${engineerData?.number || " "} \n\n        CEP: ${engineerData?.cep || " "} \n\n        CNPJ: ${engineerData?.cnpj || " "} \n\n        CREA: ${engineerData?.crea || " "} \n\n        TEL.: ${engineerData?.phone || " "} \n\n        E-mail: ${engineerData?.email || " "}`,
         ],
     ];
 
