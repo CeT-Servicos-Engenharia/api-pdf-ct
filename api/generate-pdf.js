@@ -5,13 +5,6 @@ const fs = require("fs");
 const path = require("path");
 const sharp = require("sharp");
 
-
-
-// === Layout constants ===
-const TOP_MARGIN = 50;              // top content safe area below header
-const BOTTOM_MARGIN = 90;           // bottom content safe area above footer
-const CONTENT_TOP_Y = 700;          // typical starting Y for content sections
-
 /* duplicate sharp require removed */
 
 // ===================== Helpers: Firebase image download & compression =====================
@@ -144,8 +137,6 @@ const optimizedImageBuffer = isPng
 
 
 let countPages = 0;
-const renderedSections = new Set();
-function drawOnce(key, fn) { if (renderedSections.has(key)) return; renderedSections.add(key); return fn(); }
 
 async function fetchImage(url) {
   try {
@@ -1424,7 +1415,7 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
     countPages,
   }) {
     const pageHeight = page5.getHeight();
-    const margin = BOTTOM_MARGIN;
+    const margin = 50;
     const availableHeight = pageHeight - startY - margin;
 
     let currentPage = page5;
@@ -3328,12 +3319,6 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
       if (imageCount === 6 && i < imagensOtimizadas.length - 1) {
         page = pdfDoc.addPage();
         await addHeader(pdfDoc, page, clientData, headerAssets);
-        page.drawText("5.5 REGISTROS FOTOGRÁFICOS", {
-          x: 50,
-          y: 700,
-          size: 16,
-          font: helveticaBoldFont,
-        });
         countPagesRef.value++;
         currentX = startX;
         currentY = startY - headerHeight - padding;
@@ -3379,8 +3364,8 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
 
   await addHeader(pdfDoc, page14, clientData, headerAssets);
 
-async function drawIndentedJustifiedText(
-    pageRef,
+  async function drawIndentedJustifiedText(
+    page,
     text,
     x,
     y,
@@ -3390,94 +3375,90 @@ async function drawIndentedJustifiedText(
     lineSpacing,
     indentSize
   ) {
-    // Paginated paragraph drawing with first-line indent and justification.
-    // Uses global: pdfDoc, addHeader, addFooter, data, clientData, headerAssets, countPages.
-    const lineHeight = fontSize + lineSpacing;
-    const paragraphs = (text || "").toString().split("\n");
-    let page = pageRef;
+    const paragraphs = text.split("\n");
     let currentY = y;
 
-    function wrapParagraphToLines(paragraph) {
-      const words = paragraph.split(/\s+/).filter(Boolean);
-      const lines = [];
-      let currentLine = "";
-      let first = true;
-      for (const word of words) {
-        const tryLine = currentLine ? currentLine + " " + word : word;
-        const indent = first ? indentSize : 0;
-        const width = font.widthOfTextAtSize(tryLine, fontSize);
-        if (width + indent <= maxWidth) {
-          currentLine = tryLine;
-        } else {
-          lines.push({ text: currentLine, first });
-          currentLine = word;
-          first = false;
-        }
-      }
-      if (currentLine) lines.push({ text: currentLine, first });
-      return lines;
-    }
-
-    async function ensureSpaceOrAddPage() {
-      if (currentY - lineHeight < BOTTOM_MARGIN) {
-        try {
-          await addFooter(pdfDoc, page, data, countPages);
-        } catch(e) {
-          console.error("Erro ao adicionar rodapé antes de paginar:", e?.message || e);
-        }
-        page = pdfDoc.addPage([595.28, 841.89]);
-        countPages++;
-        try {
-          await addHeader(pdfDoc, page, clientData, headerAssets);
-        } catch(e) {
-          console.error("Erro ao adicionar cabeçalho após paginação:", e?.message || e);
-        }
-        currentY = CONTENT_TOP_Y;
-      }
-    }
-
     for (const paragraph of paragraphs) {
-      const p = (paragraph || "").trim();
-      if (!p) continue;
-      const lines = wrapParagraphToLines(p);
+      if (paragraph.trim() === "") continue;
+
+      const words = paragraph.split(/\s+/);
+      let lines = [];
+      let currentLine = [];
+      let currentLineWidth = 0;
+      let isFirstLine = true;
+
+      for (let i = 0; i < words.length; i++) {
+        const word = words[i];
+        const wordWidth = font.widthOfTextAtSize(word, fontSize);
+        const spaceWidth = font.widthOfTextAtSize(" ", fontSize);
+        const effectiveMaxWidth = isFirstLine ? maxWidth - indentSize : maxWidth;
+
+        if (
+          currentLineWidth +
+          wordWidth +
+          (currentLine.length > 0 ? spaceWidth : 0) <=
+          effectiveMaxWidth
+        ) {
+          currentLine.push(word);
+          currentLineWidth += wordWidth + (currentLine.length > 1 ? spaceWidth : 0);
+        } else {
+          lines.push({ words: currentLine, isFirst: isFirstLine });
+          currentLine = [word];
+          currentLineWidth = wordWidth;
+          isFirstLine = false;
+    return currentY;
+  }
+      }
+      if (currentLine.length > 0) {
+        lines.push({ words: currentLine, isFirst: isFirstLine });
+      }
 
       for (let i = 0; i < lines.length; i++) {
-        await ensureSpaceOrAddPage();
-
+        const line = lines[i];
         const isLastLine = i === lines.length - 1;
-        const indent = lines[i].first ? indentSize : 0;
-        const textLine = lines[i].text;
+        const startX = line.isFirst ? x + indentSize : x;
 
-        if (!isLastLine && textLine.includes(" ")) {
-          // Full justification (except last line)
-          const words = textLine.split(" ");
-          const wordsWidth = words.reduce((sum, w)=> sum + font.widthOfTextAtSize(w, fontSize), 0);
-          const gaps = words.length - 1;
-          const totalSpace = maxWidth - wordsWidth - indent;
-          const spaceWidth = gaps > 0 && totalSpace > 0 ? totalSpace / gaps : font.widthOfTextAtSize(" ", fontSize);
+        if (!isLastLine && line.words.length > 1) {
+          // Justifica a linha
+          const wordsWidth = line.words.reduce(
+            (sum, word) => sum + font.widthOfTextAtSize(word, fontSize),
+            0
+          );
+          const totalSpaces = line.words.length - 1;
+          const totalSpaceWidth =
+            maxWidth - wordsWidth - (line.isFirst ? indentSize : 0);
+          const spaceWidth =
+            totalSpaces > 0 && totalSpaceWidth > 0
+              ? totalSpaceWidth / totalSpaces
+              : font.widthOfTextAtSize(" ", fontSize);
 
-          let cursorX = x + indent;
-          words.forEach((w, idx) => {
-            page.drawText(w, { x: cursorX, y: currentY, size: fontSize, font });
-            if (idx < words.length - 1) {
-              cursorX += font.widthOfTextAtSize(w, fontSize) + spaceWidth;
+          let currentX = startX;
+          line.words.forEach((word, index) => {
+            page.drawText(word, {
+              x: currentX,
+              y: currentY,
+              size: fontSize,
+              font: font,
+            });
+            if (index < line.words.length - 1) {
+              currentX += font.widthOfTextAtSize(word, fontSize) + spaceWidth;
             }
           });
         } else {
-          // Normal left-aligned for last line or single-word lines
-          page.drawText(textLine, { x: x + indent, y: currentY, size: fontSize, font });
+          // Última linha ou linha de uma palavra: alinhada à esquerda
+          page.drawText(line.words.join(" "), {
+            x: startX,
+            y: currentY,
+            size: fontSize,
+            font: font,
+          });
         }
-
-        currentY -= lineHeight;
+        currentY -= fontSize + lineSpacing;
       }
-
-      // Extra spacing between paragraphs
-      currentY -= Math.max(0, Math.floor(lineSpacing / 2));
+      // Espaço extra entre parágrafos
+      currentY -= lineSpacing * 2;
     }
-
-    return { page, currentY };
   }
-
 
   page14.drawText("6. RECOMENDAÇÕES ADICIONAIS", {
     x: 50,
@@ -3623,32 +3604,15 @@ async function drawIndentedJustifiedText(
     font: helveticaBoldFont,
   });
 
-  await drawOnce("conclusao", async () => {
-  await drawIndentedJustifiedText(
-    page15,
-    data.inspection.conclusion || "Sem conclusão referente a esta inspeção",
-    50,
-    664,
-    470,
-    helveticaFont,
-    12,
-    4,
-    20
-  );
-
-  await drawIndentedJustifiedText(
-    page15,
-    "A presente inspeção não certifica projeto, materiais e mão-de-obra, utilizados durante a fabricação e instalação do equipamento, sendo de total responsabilidade do fabricante." || "Sem conclusão referente a esta inspeção",
-    50,
-    540,
-    470,
-    helveticaFont,
-    12,
-    4,
-    20
-  );
-});
-
+  const _concl1 = data.inspection.conclusion || "Sem conclusão referente a esta inspeção";
+  const _defaultConcl2 = "A presente inspeção não certifica projeto, materiais e mão-de-obra, utilizados durante a fabricação e instalação do equipamento, sendo de total responsabilidade do fabricante.";
+  // Desenha primeira parte e pega Y resultante
+  let _nextY = await drawIndentedJustifiedText(page15, _concl1, 50, 664, 470, helveticaFont, 12, 4, 20);
+  // Se a primeira parte já contém o texto padrão, não repete
+  if (!(_concl1 && _concl1.includes(_defaultConcl2))) {
+    _nextY = (_nextY || 540) - 10; // espaçamento
+    await drawIndentedJustifiedText(page15, _defaultConcl2, 50, _nextY, 470, helveticaFont, 12, 4, 20);
+  }
 
   const resultInspection = data.inspection.selectedResultInspection && data.inspection.selectedResultInspection.approved;
   console.log(resultInspection)
@@ -4046,3 +4010,4 @@ async function generateBoilerPdf(projectId) {
 
 // Exporta a função corrigida
 module.exports = generateBoilerPdf;
+
