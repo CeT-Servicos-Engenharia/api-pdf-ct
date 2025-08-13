@@ -1694,7 +1694,8 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
 
   let upTo51 = countPages + 1;
 
-  async function generateDevicesPDF(pdfDoc, devicesData) {
+  async function generateDevicesPDF(pdfDoc, devicesData) {    let __printedSectionHeader = false;
+
     for (const [index, device] of Object.entries(devicesData || {})) {
       const pageWidth = 595.28;
       const pageHeight = 841.89;
@@ -1703,18 +1704,21 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
 
       await addHeader(pdfDoc, page8, clientData, headerAssets);
 
+      if (!__printedSectionHeader) {
       page8.drawText("5. CARACTERIZAÇÃO", {
         x: 50,
         y: 700,
         size: 24,
         font: helveticaBoldFont,
       });
-      page8.drawText("5.1 DISPOSITIVOS", {
+            page8.drawText("5.1 DISPOSITIVOS", {
         x: 50,
         y: 664,
         size: 16,
         font: helveticaBoldFont,
       });
+          }
+      __printedSectionHeader = true;
       let cursorY = 640;
 
       const deviceType =
@@ -3319,7 +3323,12 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
       if (imageCount === 6 && i < imagensOtimizadas.length - 1) {
         page = pdfDoc.addPage();
         await addHeader(pdfDoc, page, clientData, headerAssets);
-        
+        page.drawText("5.5 REGISTROS FOTOGRÁFICOS", {
+          x: 50,
+          y: 700,
+          size: 16,
+          font: helveticaBoldFont,
+        });
         countPagesRef.value++;
         currentX = startX;
         currentY = startY - headerHeight - padding;
@@ -3375,9 +3384,11 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
     fontSize,
     lineSpacing,
     indentSize
-  ) {
-    const paragraphs = text.split("\n");
+  ) {const paragraphs = text.split("
+");
     let currentY = y;
+    const BOTTOM_MARGIN = 90; // espaço do rodapé
+    const TOP_RESET_Y = 700;
 
     for (const paragraph of paragraphs) {
       if (paragraph.trim() === "") continue;
@@ -3407,6 +3418,8 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
           currentLine = [word];
           currentLineWidth = wordWidth;
           isFirstLine = false;
+    return currentY;
+
         }
       }
       if (currentLine.length > 0) {
@@ -3604,42 +3617,29 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
     font: helveticaBoldFont,
   });
 
-  const __concl1 = data.inspection.conclusion || "Sem conclusão referente a esta inspeção";
-const __defaultConcl2 = "A presente inspeção não certifica projeto, materiais e mão-de-obra, utilizados durante a fabricação e instalação do equipamento, sendo de total responsabilidade do fabricante.";
-// Desenha a primeira parte
-await drawIndentedJustifiedText(page15, __concl1, 50, 664, 470, helveticaFont, 12, 4, 20);
-// Mede a altura usada pela primeira parte para posicionar a segunda sem sobreposição
-function __measureParagraphHeight(t, maxWidth, font, fontSize, lineSpacing, indent) {
-  t = String(t || '').split('\n').filter(s => s.trim().length);
-  let total = 0;
-  for (const p of t) {
-    const words = p.split(/\s+/);
-    let line = '';
-    let first = true;
-    let lines = 0;
-    for (const w of words) {
-      const test = line ? (line + ' ' + w) : w;
-      const avail = first ? (maxWidth - indent) : maxWidth;
-      if (font.widthOfTextAtSize(test, fontSize) > avail && line) {
-        lines++;
-        line = w;
-        first = false;
-      } else {
-        line = test;
-      }
-    }
-    if (line) lines++;
-    total += lines * (fontSize + lineSpacing) + lineSpacing * 2;
-  }
-  return total;
-}
-const __h1 = __measureParagraphHeight(__concl1, 470, helveticaFont, 12, 4, 20);
-let __y2 = 664 - __h1 - 10; // 10pt de respiro
-// Evita repetir se a frase padrão já estiver contida na conclusão
-if (!(__concl1 && __concl1.includes(__defaultConcl2))) {
-  await drawIndentedJustifiedText(page15, __defaultConcl2, 50, __y2, 470, helveticaFont, 12, 4, 20);
-}
+  await drawIndentedJustifiedText(
+    page15,
+    data.inspection.conclusion || "Sem conclusão referente a esta inspeção",
+    50,
+    664,
+    470,
+    helveticaFont,
+    12,
+    4,
+    20
+  );
 
+  await drawIndentedJustifiedText(
+    page15,
+    "A presente inspeção não certifica projeto, materiais e mão-de-obra, utilizados durante a fabricação e instalação do equipamento, sendo de total responsabilidade do fabricante." || "Sem conclusão referente a esta inspeção",
+    50,
+    540,
+    470,
+    helveticaFont,
+    12,
+    4,
+    20
+  );
 
   const resultInspection = data.inspection.selectedResultInspection && data.inspection.selectedResultInspection.approved;
   console.log(resultInspection)
