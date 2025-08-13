@@ -3319,6 +3319,7 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
       if (imageCount === 6 && i < imagensOtimizadas.length - 1) {
         page = pdfDoc.addPage();
         await addHeader(pdfDoc, page, clientData, headerAssets);
+        
         countPagesRef.value++;
         currentX = startX;
         currentY = startY - headerHeight - padding;
@@ -3406,8 +3407,7 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
           currentLine = [word];
           currentLineWidth = wordWidth;
           isFirstLine = false;
-    return currentY;
-  }
+        }
       }
       if (currentLine.length > 0) {
         lines.push({ words: currentLine, isFirst: isFirstLine });
@@ -3604,15 +3604,42 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
     font: helveticaBoldFont,
   });
 
-  const _concl1 = data.inspection.conclusion || "Sem conclusão referente a esta inspeção";
-  const _defaultConcl2 = "A presente inspeção não certifica projeto, materiais e mão-de-obra, utilizados durante a fabricação e instalação do equipamento, sendo de total responsabilidade do fabricante.";
-  // Desenha primeira parte e pega Y resultante
-  let _nextY = await drawIndentedJustifiedText(page15, _concl1, 50, 664, 470, helveticaFont, 12, 4, 20);
-  // Se a primeira parte já contém o texto padrão, não repete
-  if (!(_concl1 && _concl1.includes(_defaultConcl2))) {
-    _nextY = (_nextY || 540) - 10; // espaçamento
-    await drawIndentedJustifiedText(page15, _defaultConcl2, 50, _nextY, 470, helveticaFont, 12, 4, 20);
+  const __concl1 = data.inspection.conclusion || "Sem conclusão referente a esta inspeção";
+const __defaultConcl2 = "A presente inspeção não certifica projeto, materiais e mão-de-obra, utilizados durante a fabricação e instalação do equipamento, sendo de total responsabilidade do fabricante.";
+// Desenha a primeira parte
+await drawIndentedJustifiedText(page15, __concl1, 50, 664, 470, helveticaFont, 12, 4, 20);
+// Mede a altura usada pela primeira parte para posicionar a segunda sem sobreposição
+function __measureParagraphHeight(t, maxWidth, font, fontSize, lineSpacing, indent) {
+  t = String(t || '').split('\n').filter(s => s.trim().length);
+  let total = 0;
+  for (const p of t) {
+    const words = p.split(/\s+/);
+    let line = '';
+    let first = true;
+    let lines = 0;
+    for (const w of words) {
+      const test = line ? (line + ' ' + w) : w;
+      const avail = first ? (maxWidth - indent) : maxWidth;
+      if (font.widthOfTextAtSize(test, fontSize) > avail && line) {
+        lines++;
+        line = w;
+        first = false;
+      } else {
+        line = test;
+      }
+    }
+    if (line) lines++;
+    total += lines * (fontSize + lineSpacing) + lineSpacing * 2;
   }
+  return total;
+}
+const __h1 = __measureParagraphHeight(__concl1, 470, helveticaFont, 12, 4, 20);
+let __y2 = 664 - __h1 - 10; // 10pt de respiro
+// Evita repetir se a frase padrão já estiver contida na conclusão
+if (!(__concl1 && __concl1.includes(__defaultConcl2))) {
+  await drawIndentedJustifiedText(page15, __defaultConcl2, 50, __y2, 470, helveticaFont, 12, 4, 20);
+}
+
 
   const resultInspection = data.inspection.selectedResultInspection && data.inspection.selectedResultInspection.approved;
   console.log(resultInspection)
