@@ -297,7 +297,7 @@ async function drawTable(ctx, startX, columnWidths, data, headerFont, bodyFont, 
         });
         ctx.currentPage.drawText(cell, {
             x: x + 10,
-            y: ctx.cursorY - headerHeight / 2 - headerFont.heightOfTextAtSize(10) / 2,
+            y: ctx.cursorY - headerHeight / 2 - headerFont.heightAtSize(10) / 2, // Corrigido aqui
             size: 10,
             font: headerFont,
             color: rgb(1, 1, 1),
@@ -680,7 +680,7 @@ async function generatePDF(projectData, clientData, engineerData, analystData) {
 
 async function generateBoilerPdf(projectId) {
   if (!projectId) {
-    throw new Error("O parâmetro 'projectId' é obrigatório.");
+    throw new Error("O parâmetro \'projectId\' é obrigatório.");
   }
 
   try {
