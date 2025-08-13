@@ -395,7 +395,7 @@ async function generatePDF(projectData, clientData, engineerData, analystData) {
 
     // Página de Rosto (Capa)
     await ctx.addNewPage();
-    ctx.currentPage.drawText(`Relatório de Inspeção: ${projectData.tipoEquipamento}`, {
+    ctx.currentPage.drawText(`Relatório de Inspeção: ${projectData.tipoEquipamento || "N/A"}`, {
         x: 115,
         y: 700,
         size: 24,
@@ -481,7 +481,7 @@ async function generatePDF(projectData, clientData, engineerData, analystData) {
         size: 14,
         font: assets.helveticaBoldFont,
     });
-    ctx.currentPage.drawText(`${projectData.fabricante}`, {
+    ctx.currentPage.drawText(`${projectData.fabricante || " "}`, {
         x: 128,
         y: ctx.cursorY,
         size: 14,
@@ -489,7 +489,7 @@ async function generatePDF(projectData, clientData, engineerData, analystData) {
     });
     ctx.cursorY -= 30;
 
-    ctx.currentPage.drawText(`${clientData.person || " "}`, {
+    ctx.currentPage.drawText(`${clientData?.person || " "}`, {
         x: ctx.MARGIN_LEFT,
         y: ctx.cursorY,
         size: 12,
@@ -497,7 +497,7 @@ async function generatePDF(projectData, clientData, engineerData, analystData) {
     });
     ctx.cursorY -= 15;
 
-    ctx.currentPage.drawText(`${clientData.address || " "} CEP: ${clientData.cep || " "}`, {
+    ctx.currentPage.drawText(`${clientData?.address || " "} CEP: ${clientData?.cep || " "}`, {
         x: ctx.MARGIN_LEFT,
         y: ctx.cursorY,
         size: 12,
@@ -505,7 +505,7 @@ async function generatePDF(projectData, clientData, engineerData, analystData) {
     });
     ctx.cursorY -= 15;
 
-    ctx.currentPage.drawText(`CNPJ: ${clientData.cnpj || " "}`, {
+    ctx.currentPage.drawText(`CNPJ: ${clientData?.cnpj || " "}`, {
         x: ctx.MARGIN_LEFT,
         y: ctx.cursorY,
         size: 12,
@@ -513,7 +513,7 @@ async function generatePDF(projectData, clientData, engineerData, analystData) {
     });
     ctx.cursorY -= 15;
 
-    ctx.currentPage.drawText(`FONE: ${clientData.phone || " "}`, {
+    ctx.currentPage.drawText(`FONE: ${clientData?.phone || " "}`, {
         x: ctx.MARGIN_LEFT,
         y: ctx.cursorY,
         size: 12,
@@ -529,8 +529,8 @@ async function generatePDF(projectData, clientData, engineerData, analystData) {
     const tableDataRegistrationData = [
         ["CLIENTE", "ELABORAÇÃO"],
         [
-            `  ${clientData.person || " "} \n\n        ${clientData.address || " "}, ${clientData.neighborhood || " "}, ${clientData.number || " "} \n\n        CEP: ${clientData.cep || " "} \n\n        CNPJ: ${clientData.cnpj || " "} \n\n        TEL.: ${clientData.phone || " "} \n\n        E-mail: ${clientData.email || " "}`,
-            ` ${engineerData.name || " "} \n\n        ${engineerData.address || " "}, ${engineerData.neighborhood || " "}, ${engineerData.number || " "} \n\n        CEP: ${engineerData.cep || " "} \n\n        CNPJ: ${engineerData.cnpj || " "} \n\n        CREA: ${engineerData.crea || " "} \n\n        TEL.: ${engineerData.phone || " "} \n\n        E-mail: ${engineerData.email || " "}`,
+            `  ${clientData?.person || " "} \n\n        ${clientData?.address || " "}, ${clientData?.neighborhood || " "}, ${clientData?.number || " "} \n\n        CEP: ${clientData?.cep || " "} \n\n        CNPJ: ${clientData?.cnpj || " "} \n\n        TEL.: ${clientData?.phone || " "} \n\n        E-mail: ${clientData?.email || " "}`,
+            ` ${engineerData?.name || " "} \n\n        ${engineerData?.address || " "}, ${engineerData?.neighborhood || " "}, ${engineerData?.number || " "} \n\n        CEP: ${engineerData?.cep || " "} \n\n        CNPJ: ${engineerData?.cnpj || " "} \n\n        CREA: ${engineerData?.crea || " "} \n\n        TEL.: ${engineerData?.phone || " "} \n\n        E-mail: ${engineerData?.email || " "}`,
         ],
     ];
 
@@ -561,8 +561,8 @@ async function generatePDF(projectData, clientData, engineerData, analystData) {
     // Bloco de Aprovado/Reprovado
     const resultInspection = projectData.inspection.selectedResultInspection?.approved;
     const resultText = resultInspection
-        ? `${projectData.tipoEquipamento} está APROVADO para operação`
-        : `${projectData.tipoEquipamento} está REPROVADO para operação`;
+        ? `${projectData.tipoEquipamento || "Equipamento"} está APROVADO para operação`
+        : `${projectData.tipoEquipamento || "Equipamento"} está REPROVADO para operação`;
     const resultColor = resultInspection ? rgb(0, 0.43, 0) : rgb(0.8, 0, 0);
     
     await ctx.checkSpace(60); // Verifica espaço para o retângulo e texto
@@ -633,11 +633,14 @@ async function generatePDF(projectData, clientData, engineerData, analystData) {
     });
     ctx.cursorY -= 15;
 
-    const text1 = "Resp. Téc Cleonis Batista Santos";
+    const engineerName = engineerData?.name || "N/A";
+    const engineerCrea = engineerData?.crea || "N/A";
+
+    const text1 = `Resp. Téc ${engineerName}`;
     ctx.currentPage.drawText(text1, { x: ctx.PAGE_WIDTH / 2 - assets.helveticaFont.widthOfTextAtSize(text1, 12) / 2, y: ctx.cursorY, size: 12, font: assets.helveticaFont });
     ctx.cursorY -= 15;
     
-    const text2 = `CREA ${engineerData.crea || "N/A"}`;
+    const text2 = `CREA ${engineerCrea}`;
     ctx.currentPage.drawText(text2, { x: ctx.PAGE_WIDTH / 2 - assets.helveticaFont.widthOfTextAtSize(text2, 12) / 2, y: ctx.cursorY, size: 12, font: assets.helveticaFont });
     ctx.cursorY -= 15;
 
