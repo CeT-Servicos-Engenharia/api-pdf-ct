@@ -1176,11 +1176,39 @@ Este relatório foi elaborado com base nas informações disponíveis no momento
   return pdfDoc;
 }
 
-module.exports = {
-  generatePDF,
-  getProjectData,
-  getClientData,
-  getEngenieerData,
-  getAnalystData,
-};
+// Handler principal para Vercel
+async function generateBoilerPdf(projectId) {
+  if (!projectId) {
+    throw new Error("O parâmetro 'projectId' é obrigatório.");
+  }
+
+  try {
+    const projectData = await getProjectData(projectId);
+    const clientData = await getClientData(
+      projectData.client || projectData.clientId
+    );
+    const engenieerData = await getEngenieerData(
+      projectData.engenieer?.id || projectData.engenieerId || " "
+    );
+    const analystData = await getAnalystData(
+      projectData.analyst?.id || projectData.analystId || " "
+    );
+
+    const pdfDoc = await generatePDF(
+      projectData,
+      clientData,
+      engenieerData,
+      analystData
+    );
+
+    const pdfBytes = await pdfDoc.save();
+    return Buffer.from(pdfBytes);
+  } catch (error) {
+    console.error("Erro ao gerar o PDF:", error.message);
+    throw new Error("Erro ao gerar o PDF");
+  }
+}
+
+// Exporta a função principal como módulo
+module.exports = generateBoilerPdf;
 
