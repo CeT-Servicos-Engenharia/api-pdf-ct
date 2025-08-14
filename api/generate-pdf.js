@@ -136,6 +136,16 @@ async function addFirebaseImageToPDF(pdfDoc, page, imageUrl, options = {}) {
 
 let countPages = 0;
 
+// Função para limpar caracteres que podem causar problemas na codificação WinAnsi
+function cleanTextForPDF(text) {
+  if (!text || typeof text !== 'string') return text || '';
+  
+  return text
+    .replace(/[\u0000-\u001F\u007F-\u009F]/g, '') // Remove caracteres de controle
+    .replace(/[^\x20-\x7E\u00A0-\u00FF]/g, '') // Mantém apenas caracteres WinAnsi compatíveis
+    .trim();
+}
+
 async function fetchImage(url) {
   try {
     const response = await fetch(url);
@@ -343,7 +353,7 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
 
   await addHeader(pdfDoc, page, clientData, headerAssets);
 
-  page.drawText(`Relatório de Inspeção: ${data.tipoEquipamento}`, {
+  page.drawText(`Relatório de Inspeção: ${cleanTextForPDF(data.tipoEquipamento)}`, {
     x: 115,
     y: 700,
     size: 24,
@@ -379,7 +389,7 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
     size: 14,
     font: helveticaBoldFont,
   });
-  page.drawText(`${data.nomeEquipamento || " "}`, {
+  page.drawText(`${cleanTextForPDF(data.nomeEquipamento) || " "}`, {
     x: 208,
     y: 350,
     size: 14,
@@ -391,7 +401,7 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
     size: 14,
     font: helveticaBoldFont,
   });
-  page.drawText(`${data.numeroSerie || " "}`, {
+  page.drawText(`${cleanTextForPDF(data.numeroSerie) || " "}`, {
     x: 165,
     y: 320,
     size: 14,
@@ -403,7 +413,7 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
     size: 14,
     font: helveticaBoldFont,
   });
-  page.drawText(`${data.numeroPatrimonio || " "}  ${data.tag || " "}`, {
+  page.drawText(`${cleanTextForPDF(data.numeroPatrimonio) || " "}  ${cleanTextForPDF(data.tag) || " "}`, {
     x: 162,
     y: 290,
     size: 14,
@@ -415,32 +425,32 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
     size: 14,
     font: helveticaBoldFont,
   });
-  page.drawText(`${data.fabricante}`, {
+  page.drawText(`${cleanTextForPDF(data.fabricante)}`, {
     x: 128,
     y: 260,
     size: 14,
     font: helveticaFont,
   });
 
-  page.drawText(`${clientData.person || " "}`, {
+  page.drawText(`${cleanTextForPDF(clientData.person) || " "}`, {
     x: 50,
     y: 200,
     size: 12,
     font: helveticaBoldFont,
   });
-  page.drawText(`${clientData.address || " "} CEP: ${clientData.cep || " "}`, {
+  page.drawText(`${cleanTextForPDF(clientData.address) || " "} CEP: ${cleanTextForPDF(clientData.cep) || " "}`, {
     x: 50,
     y: 185,
     size: 12,
     font: helveticaFont,
   });
-  page.drawText(`CNPJ: ${clientData.cnpj || " "}`, {
+  page.drawText(`CNPJ: ${cleanTextForPDF(clientData.cnpj) || " "}`, {
     x: 50,
     y: 170,
     size: 12,
     font: helveticaFont,
   });
-  page.drawText(`FONE: ${clientData.phone || " "}`, {
+  page.drawText(`FONE: ${cleanTextForPDF(clientData.phone) || " "}`, {
     x: 50,
     y: 155,
     size: 12,
@@ -565,21 +575,19 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
   const tableDataRegistrationData = [
     ["CLIENTE", "ELABORAÇÃO"], // Cabeçalho
     [
-      `  ${clientData.person || " "} \n
-        ${clientData.address || " "}, ${clientData.neighborhood || " "}, ${clientData.number || " "
-      } \n
-        CEP: ${clientData.cep || " "} \n
-        CNPJ: ${clientData.cnpj || " "} \n
-        TEL.: ${clientData.phone || " "} \n
-        E-mail: ${clientData.email || " "}`,
-      ` ${engenieerData.name || " "} \n
-        ${engenieerData.address || " "}, ${engenieerData.neighborhood || " "
-      }, ${engenieerData.number || " "} \n
-        CEP: ${engenieerData.cep || " "} \n
-        CNPJ: ${engenieerData.cnpj || " "} \n
-        CREA: ${engenieerData.crea || " "} \n
-        TEL.: ${engenieerData.phone || " "} \n
-        E-mail: ${engenieerData.email || " "}`,
+      `${cleanTextForPDF(clientData.person) || " "}
+${cleanTextForPDF(clientData.address) || " "}, ${cleanTextForPDF(clientData.neighborhood) || " "}, ${cleanTextForPDF(clientData.number) || " "}
+CEP: ${cleanTextForPDF(clientData.cep) || " "}
+CNPJ: ${cleanTextForPDF(clientData.cnpj) || " "}
+TEL.: ${cleanTextForPDF(clientData.phone) || " "}
+E-mail: ${cleanTextForPDF(clientData.email) || " "}`,
+      `${cleanTextForPDF(engenieerData.name) || " "}
+${cleanTextForPDF(engenieerData.address) || " "}, ${cleanTextForPDF(engenieerData.neighborhood) || " "}, ${cleanTextForPDF(engenieerData.number) || " "}
+CEP: ${cleanTextForPDF(engenieerData.cep) || " "}
+CNPJ: ${cleanTextForPDF(engenieerData.cnpj) || " "}
+CREA: ${cleanTextForPDF(engenieerData.crea) || " "}
+TEL.: ${cleanTextForPDF(engenieerData.phone) || " "}
+E-mail: ${cleanTextForPDF(engenieerData.email) || " "}`,
     ],
   ];
 
@@ -717,10 +725,10 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
   const tableDataTechnicalManagers = [
     ["ANALISTA", "ENGENHEIRO"], // Cabeçalho
     [
-      `  ${analystData.name || " "} \n
-        E-mail: ${analystData.email || "N/C"}`,
-      ` ${engenieerData.name || " "} \n
-        CREA: ${engenieerData.crea || " "} \n`,
+      `${cleanTextForPDF(analystData.name) || " "}
+E-mail: ${cleanTextForPDF(analystData.email) || "N/C"}`,
+      `${cleanTextForPDF(engenieerData.name) || " "}
+CREA: ${cleanTextForPDF(engenieerData.crea) || " "}`,
     ],
   ];
 
@@ -1057,7 +1065,9 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
     indent = 0,
     lineHeight = 15
   ) {
-    const words = text.split(' ');
+    // Limpa o texto antes de processar
+    const cleanedText = cleanTextForPDF(text);
+    const words = cleanedText.split(' ');
     let lines = [];
     let currentLine = '';
 
@@ -1081,7 +1091,7 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
       const isFirstLine = index === 0;
       const lineX = isFirstLine ? x + indent : x;
       
-      page.drawText(line, {
+      page.drawText(cleanTextForPDF(line), {
         x: lineX,
         y: currentY,
         size: fontSize,
