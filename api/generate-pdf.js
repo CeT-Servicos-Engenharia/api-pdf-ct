@@ -1,9 +1,9 @@
 // generate-pdf.js (CommonJS) — Mantendo o nome antigo: generateBoilerPdf
-// Correções aplicadas: datas (DD/MM/AAAA), unidades (kgf/cm² com vírgula), normalização de rótulos,
-// proteção contra textos duplicados, larguras de coluna ajustadas e opção de não duplicar numeração.
+// Agora com busca robusta do template (templates/, assets/, public/, ENV TEMPLATE_PATH) e mensagens claras.
 // deps: pdf-lib, sharp, axios, firebase-admin
 
 const fs = require('fs').promises
+const fssync = require('fs')
 const path = require('path')
 const axios = require('axios')
 const sharp = require('sharp')
@@ -14,7 +14,7 @@ const { PDFDocument, StandardFonts, rgb } = require('pdf-lib')
  * generateBoilerPdf(projectId, opts)
  * @param {string} projectId
  * @param {Object} opts
- * @param {string} [opts.templatePath]
+ * @param {string} [opts.templatePath] caminho do PDF base
  * @param {Uint8Array|Buffer} [opts.templateBytes]
  * @param {string} [opts.companyLogoPath] caminho da logo local (PNG/JPG)
  * @param {boolean} [opts.addPageNumbers=false] se true, desenha rodapé "X / Y"
@@ -28,8 +28,17 @@ async function generateBoilerPdf(projectId, opts = {}) {
     addPageNumbers = false // por padrão desliga (muitos templates já trazem numeração)
   } = opts
 
-  // 1) Carrega template
-  const baseBytes = templateBytes || await fs.readFile(assertTemplatePath(templatePath))
+  // 1) Carrega template (bytes > caminho explícito > ENV > locais padrão)
+  const baseBytes =
+    templateBytes ||
+    await readFirstExisting([
+      templatePath,
+      process.env.TEMPLATE_PATH,
+      path.resolve(process.cwd(), 'templates', 'relatorio.pdf'),
+      path.resolve(process.cwd(), 'assets', 'relatorio.pdf'),
+      path.resolve(process.cwd(), 'public', 'relatorio.pdf')
+    ])
+
   const baseDoc = await PDFDocument.load(baseBytes)
 
   // 2) Doc de saída: clona páginas do template
@@ -164,12 +173,11 @@ async function generateBoilerPdf(projectId, opts = {}) {
       { x: 50, y: 720, cols: 3, cellW: 161.5, cellH: 150, gap: 5 }
     )
 
-    // Larguras ajustadas (colunas mais largas evitam "grudar" texto)
     utils.drawKeyValueTable(p3, [
       ['TIPO', safe(data.tipoEquipamento)],
       ['TIPO DA CALDEIRA', safe(data.tipoCaldeira)],
       ['NÚMERO DE SÉRIE', safe(data.numeroSerie)],
-      ['ANO DE FABRICAÇÃO', safe(data.anoFabricacao)],
+      ['ANO DE FABRICAÇÃO', safe(data.anoFabicacao || data.anoFabricacao || '')],
       ['PMTA', unit(data.pressaoMaxima, data.unidadePressaoMaxima || 'kgf/cm²')],
       ['PTHF', unit(data.pressaoTeste, data.unidadePressaoMaxima || 'kgf/cm²')],
       ['CAPACIDADE DE PRODUÇÃO DE VAPOR (CPV)', safe(data.capacidadeProducaoVapor)],
@@ -196,15 +204,8 @@ async function generateBoilerPdf(projectId, opts = {}) {
       ['COMBUSTÍVEL PRINCIPAL', safe(data.combustivelPrincipal)],
       ['COMBUSTÍVEL AUXILIAR', safe(data.combustivelAuxiliar)],
       ['REGIME DE TRABALHO', fixAccents(safe(data.regimeTrabalho))],
-      ['TIPO DE OPERAÇÃO', ''] // preenchido abaixo se existir
+      ['TIPO DE OPERAÇÃO', fixAccents(safe(data.tipoOperacao))]
     ], { x: 50, y: 560, keyW: 260, valW: 260, rowH: 20, styleKey: { size: 10 }, styleVal: { size: 10 } })
-
-    // Corrige label/valor "TIPO DE OPERAÇÃO" com acento
-    const tipoOperacao = fixAccents(safe(data.tipoOperacao))
-    if (tipoOperacao) {
-      // sobrescreve apenas a célula do valor na linha 4 do segundo bloco
-      utils.drawValue(p4, tipoOperacao, { x: 50 + 260 + 4, y: 560 - (20 * (4 - 1)) - 4, maxWidth: 260 - 8, style: { size: 10 } })
-    }
 
     if (addPageNumbers) utils.pageNumber(p4, 4, outDoc.getPageCount())
   }
@@ -259,6 +260,29 @@ async function getProjectData(projectId) {
     engenheiro: { name: '', crea: '', address: '', neighborhood: '', number: '', cep: '', cnpj: '', phone: '', email: '' },
     analista: { name: '', email: '' }
   }
+}
+
+/* ====================== Helpers de arquivo ====================== */
+async function readFirstExisting(paths) {
+  const tried = []
+  for (const p of paths) {
+    if (!p) continue
+    try {
+      const abs = path.resolve(process.cwd(), p)
+      if (fssync.existsSync(abs)) {
+        return await fs.readFile(abs)
+      }
+      tried.push(abs)
+    } catch (e) {
+      tried.push(String(p))
+    }
+  }
+  const msg = [
+    'Template PDF não encontrado. Tente colocar seu modelo em um destes caminhos:',
+    ...tried.map(x => ` - ${x}`),
+    'Ou defina TEMPLATE_PATH no ambiente, ou passe templateBytes.'
+  ].join('\n')
+  throw new Error(msg)
 }
 
 /* ====================== Utils de desenho ====================== */
@@ -336,10 +360,6 @@ function makeUtils ({ pdfDoc, fontRegular, fontBold }) {
 }
 
 /* ====================== Utils gerais ====================== */
-function assertTemplatePath (templatePath) {
-  if (templatePath) return templatePath
-  return path.resolve(process.cwd(), 'templates', 'relatorio.pdf')
-}
 function safe (x) { return x == null ? '' : String(x) }
 function n (x) { return (x ?? '') === '' ? '' : String(x).replace('.', ',') }
 function unit (val, u) {
