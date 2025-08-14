@@ -318,7 +318,7 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
   async function addFooter(pdfDoc, page, data, pageNumber) {
     const helveticaFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
     const pageWidth = page.getWidth(); // Obtém a largura da página
-    const formattedDate = data.inspection.endDate ? formatDate(data.inspection.endDate) : "N/A";
+    const formattedDate = data.inspection?.endDate ? formatDate(data.inspection.endDate) : "N/A";
 
     const footerTextStart = `${data.numeroProjeto || " "}\nART:${data.artProjeto}`;
     const footerTextMiddle = `Eng. Mec. Cleonis Batista Santos\nEng. Mec. Seg. Thiago Wherman Candido Borges`;
@@ -327,7 +327,7 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
     const drawMultilineText = (text, x, y, lineHeight) => {
       const lines = text.split("\n");
       lines.forEach((line, index) => {
-        page.drawText(line, {
+        page.drawText(cleanTextForPDF(line), {
           x: x,
           y: y - index * lineHeight,
           size: 10,
@@ -349,6 +349,58 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
     drawMultilineText(footerTextStart, xStart, baseY, lineHeight);
     drawMultilineText(footerTextMiddle, xMiddle, baseY, lineHeight);
     drawMultilineText(footerTextEnd, xEnd, baseY, lineHeight);
+  }
+
+  // Função para desenhar texto justificado com indentação
+  async function drawIndentedJustifiedText(
+    page,
+    text,
+    x,
+    y,
+    maxWidth,
+    font,
+    fontSize,
+    indent = 0,
+    lineHeight = 15
+  ) {
+    // Limpa o texto antes de processar
+    const cleanedText = cleanTextForPDF(text);
+    const words = cleanedText.split(' ');
+    let lines = [];
+    let currentLine = '';
+
+    // Quebra o texto em linhas
+    for (const word of words) {
+      const testLine = currentLine ? `${currentLine} ${word}` : word;
+      const testWidth = font.widthOfTextAtSize(testLine, fontSize);
+
+      if (testWidth > maxWidth - indent && currentLine) {
+        lines.push(currentLine);
+        currentLine = word;
+      } else {
+        currentLine = testLine;
+      }
+    }
+    if (currentLine) lines.push(currentLine);
+
+    // Desenha cada linha
+    let currentY = y;
+    lines.forEach((line, index) => {
+      const isFirstLine = index === 0;
+      const lineX = isFirstLine ? x + indent : x;
+      
+      page.drawText(cleanTextForPDF(line), {
+        x: lineX,
+        y: currentY,
+        size: fontSize,
+        font: font,
+        color: rgb(0, 0, 0),
+      });
+      
+      currentY -= lineHeight;
+    });
+
+    return currentY; // Retorna a posição Y final
   }
 
   await addHeader(pdfDoc, page, clientData, headerAssets);
@@ -505,7 +557,7 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
 
     items.forEach(item => {
       // Desenha o texto do item
-      page.drawText(item.text, {
+      page.drawText(cleanTextForPDF(item.text), {
         x: 50,
         y: currentY,
         size: 12,
@@ -639,7 +691,7 @@ E-mail: ${cleanTextForPDF(engenieerData.email) || " "}`,
         borderColor: rgb(0.102, 0.204, 0.396),
         borderWidth: 1,
       });
-      page.drawText(cell, {
+      page.drawText(cleanTextForPDF(cell), {
         x: x + 10, // Margem interna
         y: currentY - headerRowHeight / 2 - 5,
         size: 12,
@@ -689,7 +741,7 @@ E-mail: ${cleanTextForPDF(engenieerData.email) || " "}`,
         let textY = currentY - textPadding;
 
         lines.forEach((line) => {
-          page.drawText(line, {
+          page.drawText(cleanTextForPDF(line), {
             x: x + textPadding,
             y: textY - lineHeight,
             size: 10,
@@ -759,7 +811,7 @@ CREA: ${cleanTextForPDF(engenieerData.crea) || " "}`,
         borderColor: rgb(0.102, 0.204, 0.396),
         borderWidth: 1,
       });
-      page.drawText(cell, {
+      page.drawText(cleanTextForPDF(cell), {
         x: x + 10, // Margem interna
         y: currentY - headerRowHeight / 2 - 5,
         size: 12,
@@ -791,7 +843,7 @@ CREA: ${cleanTextForPDF(engenieerData.crea) || " "}`,
         let textY = currentY - textPadding;
 
         lines.forEach((line) => {
-          page.drawText(line, {
+          page.drawText(cleanTextForPDF(line), {
             x: x + textPadding,
             y: textY - lineHeight + 10,
             size: 10,
@@ -827,9 +879,9 @@ CREA: ${cleanTextForPDF(engenieerData.crea) || " "}`,
   const tableDataRevisionControl = [
     ["REVISÃO", "DESCRIÇÃO", "RESPONSÁVEL", "DATA"],
     [
-      `${data.numeroProjeto || " "}`,
-      `${data.descricaoRevisao || " "}`,
-      `${analystData.name || " "}`,
+      `${cleanTextForPDF(data.numeroProjeto) || " "}`,
+      `${cleanTextForPDF(data.descricaoRevisao) || " "}`,
+      `${cleanTextForPDF(analystData.name) || " "}`,
       `${data.inspection?.endDate || "N/A"}`,
     ],
   ];
@@ -865,7 +917,7 @@ CREA: ${cleanTextForPDF(engenieerData.crea) || " "}`,
         borderColor: rgb(0.102, 0.204, 0.396),
         borderWidth: 1,
       });
-      page.drawText(cell, {
+      page.drawText(cleanTextForPDF(cell), {
         x: x + 10, // Margem interna
         y: currentY - headerRowHeight / 2 - 5,
         size: 12,
@@ -899,7 +951,7 @@ CREA: ${cleanTextForPDF(engenieerData.crea) || " "}`,
         let textY = currentY - textPadding;
 
         lines.forEach((line) => {
-          page.drawText(line, {
+          page.drawText(cleanTextForPDF(line), {
             x: x + textPadding,
             y: textY - lineHeight + 10,
             size: 10,
@@ -939,8 +991,8 @@ CREA: ${cleanTextForPDF(engenieerData.crea) || " "}`,
         data.inspection?.selectedTypesInspection?.extraordinaria
           ? "Extraordinária"
           : null,
-        data.inspection.selectedTypesInspection?.inicial ? "Inicial" : null,
-        data.inspection.selectedTypesInspection?.periodica ? "Periódica" : null,
+        data.inspection?.selectedTypesInspection?.inicial ? "Inicial" : null,
+        data.inspection?.selectedTypesInspection?.periodica ? "Periódica" : null,
       ]
         .filter(Boolean)
         .join(", ")}`,
@@ -991,7 +1043,7 @@ CREA: ${cleanTextForPDF(engenieerData.crea) || " "}`,
         borderColor: rgb(0.102, 0.204, 0.396),
         borderWidth: 1,
       });
-      page.drawText(cell, {
+      page.drawText(cleanTextForPDF(cell), {
         x: x + 10, // Margem interna
         y: currentY - headerRowHeight / 2 - 5,
         size: 12,
@@ -1025,7 +1077,7 @@ CREA: ${cleanTextForPDF(engenieerData.crea) || " "}`,
         let textY = currentY - textPadding;
 
         lines.forEach((line) => {
-          page.drawText(line, {
+          page.drawText(cleanTextForPDF(line), {
             x: x + textPadding,
             y: textY - lineHeight + 10,
             size: 10,
@@ -1053,30 +1105,457 @@ CREA: ${cleanTextForPDF(engenieerData.crea) || " "}`,
 
   await addFooter(pdfDoc, page3, data, countPages);
 
-  // Função para desenhar texto justificado com indentação
-  async function drawIndentedJustifiedText(
-    page,
-    text,
-    x,
-    y,
-    maxWidth,
-    font,
-    fontSize,
-    indent = 0,
-    lineHeight = 15
-  ) {
-    // Limpa o texto antes de processar
-    const cleanedText = cleanTextForPDF(text);
-    const words = cleanedText.split(' ');
-    let lines = [];
-    let currentLine = '';
+  // ===================== PÁGINA 4 - DADOS DO EQUIPAMENTO =====================
+  const page4 = pdfDoc.addPage([595.28, 841.89]);
+  countPages++;
 
-    // Quebra o texto em linhas
+  await addHeader(pdfDoc, page4, clientData, headerAssets);
+
+  page4.drawText("1.5 DADOS DO EQUIPAMENTO", {
+    x: 50,
+    y: 720,
+    size: 16,
+    font: helveticaBoldFont,
+    color: rgb(0, 0, 0),
+  });
+
+  // Função para desenhar grid de imagens
+  async function drawImageGrid({
+    page,
+    pdfDoc,
+    startX,
+    startY,
+    columnWidth,
+    rowHeight,
+    images,
+    captions,
+    helveticaFont,
+    helveticaBoldFont,
+  }) {
+    const headerHeight = 20;
+    const imageHeight = 80;
+    const captionHeight = 15;
+    const padding = 5;
+
+    // Cabeçalho azul
+    const headerText = "IDENTIFICAÇÃO";
+    page.drawRectangle({
+      x: startX,
+      y: startY - 30,
+      width: 495.28,
+      height: headerHeight,
+      color: rgb(0.102, 0.204, 0.396),
+    });
+
+    page.drawText(headerText, {
+      x: startX + columnWidth,
+      y: startY - 22,
+      size: 12,
+      font: helveticaBoldFont,
+      color: rgb(1, 1, 1),
+    });
+
+    // Coordenadas iniciais para imagens
+    let currentX = startX;
+    let currentY = startY - headerHeight - padding;
+
+    for (let i = 0; i < Math.min(images.length, 6); i++) {
+      const imageObj = images[i];
+
+      if (!imageObj || !imageObj.buffer) {
+        console.warn(`Imagem inválida no índice ${i}`);
+        continue;
+      }
+
+      try {
+        const pdfImage = await pdfDoc.embedJpg(imageObj.buffer);
+
+        page.drawImage(pdfImage, {
+          x: currentX,
+          y: currentY - 155,
+          width: columnWidth,
+          height: 150,
+        });
+
+        page.drawText(cleanTextForPDF(captions[i]) || `Imagem ${i + 1}`, {
+          x: currentX + 60,
+          y: currentY - columnWidth - 5,
+          size: 10,
+          font: helveticaFont,
+          color: rgb(0, 0, 0),
+        });
+      } catch (error) {
+        console.error(`Erro ao desenhar imagem no índice ${i}: ${error.message}`);
+      }
+
+      currentX += columnWidth + padding;
+
+      if ((i + 1) % 3 === 0) {
+        currentX = startX;
+        currentY -= rowHeight;
+      }
+    }
+  }
+
+  // Baixar e processar imagens gerais
+  const imagensGerais = await baixarEComprimirTodasImagens(data.images || []);
+
+  await drawImageGrid({
+    page: page4,
+    pdfDoc,
+    startX: 50,
+    startY: 700,
+    columnWidth: 161.5,
+    rowHeight: 185,
+    images: imagensGerais,
+    captions: ["Geral", "Traseira", "Direita", "Esquerda", "Frontal", "Placa"],
+    helveticaFont: helveticaFont,
+    helveticaBoldFont: helveticaBoldFont,
+  });
+
+  // Tabela de dados gerais
+  const columnWidthsDrawGeralDatas = [350, 145.28];
+  const rowHeightDrawGeralDatas = 20;
+
+  const tableDataGeralDatas = [
+    ["TIPO", `${cleanTextForPDF(data.tipoEquipamento) || " "}`],
+    ["TIPO DA CALDEIRA", `${cleanTextForPDF(data.tipoCaldeira) || " "}`],
+    ["NÚMERO DE SÉRIE", `${cleanTextForPDF(data.numeroSerie) || " "}`],
+    ["ANO DE FABRICAÇÃO", `${cleanTextForPDF(data.anoFabricacao) || " "}`],
+    [
+      "PRESSÃO MÁXIMA DE TRABALHO ADMISSÍVEL (PMTA)",
+      `${cleanTextForPDF(data.pressaoMaxima) || " "} ${cleanTextForPDF(data.unidadePressaoMaxima) || " "}`,
+    ],
+    [
+      "PRESSÃO DE TESTE HIDROSTÁTICO DE FABRICAÇÃO (PTHF)",
+      `${cleanTextForPDF(data.pressaoTeste) || " "} ${cleanTextForPDF(data.unidadePressaoMaxima) || " "}`,
+    ],
+    [
+      "CAPACIDADE DE PRODUÇÃO DE VAPOR (CPV)",
+      `${cleanTextForPDF(data.capacidadeProducaoVapor) || " "}`,
+    ],
+    [
+      "ÁREA DA SUPERFÍCIE DE AQUECIMENTO (ASA)",
+      `${cleanTextForPDF(data.areaSuperficieAquecimento) || " "}`,
+    ],
+    [
+      "CÓDIGO DO PROJETO / ANO DE EDIÇÃO",
+      `${cleanTextForPDF(data.codProjeto) || " "} / ${cleanTextForPDF(data.anoEdicao) || " "}`,
+    ],
+    ["LOCAL DE INSTALAÇÃO", `${cleanTextForPDF(data.localInstalacao) || " "}`],
+  ];
+
+  async function drawTableGeralDatas({
+    page,
+    startX,
+    startY,
+    columnWidthsDrawGeralDatas,
+    rowHeightDrawGeralDatas,
+    tableDataGeralDatas,
+    helveticaFont,
+    helveticaBoldFont,
+  }) {
+    const headerHeight = 20;
+    page.drawRectangle({
+      x: startX,
+      y: startY,
+      width: 495.5,
+      height: headerHeight,
+      color: rgb(0.102, 0.204, 0.396),
+    });
+
+    page.drawText("DADOS GERAIS", {
+      x: startX + 180,
+      y: startY + 5,
+      size: 10,
+      font: helveticaBoldFont,
+      color: rgb(1, 1, 1),
+    });
+
+    let currentY = startY - headerHeight;
+    for (let i = 0; i < tableDataGeralDatas.length; i++) {
+      const row = tableDataGeralDatas[i];
+      let currentX = startX;
+
+      for (let j = 0; j < row.length; j++) {
+        const cellText = cleanTextForPDF(row[j]);
+        const cellWidth = columnWidthsDrawGeralDatas[j];
+
+        page.drawRectangle({
+          x: currentX,
+          y: currentY,
+          width: cellWidth,
+          height: rowHeightDrawGeralDatas,
+          borderWidth: 1,
+          borderColor: rgb(0.102, 0.204, 0.396),
+        });
+
+        page.drawText(cellText, {
+          x: currentX + 5,
+          y: currentY + 6,
+          size: 10,
+          font: helveticaFont,
+          color: rgb(0, 0, 0),
+        });
+
+        currentX += cellWidth;
+      }
+      currentY -= rowHeightDrawGeralDatas;
+    }
+  }
+
+  await drawTableGeralDatas({
+    page: page4,
+    startX: 50,
+    startY: 300,
+    columnWidthsDrawGeralDatas,
+    rowHeightDrawGeralDatas,
+    tableDataGeralDatas,
+    helveticaFont,
+    helveticaBoldFont,
+  });
+
+  await addFooter(pdfDoc, page4, data, countPages);
+
+  // ===================== PÁGINA 5 - CATEGORIZAÇÃO =====================
+  const page5 = pdfDoc.addPage([595.28, 841.89]);
+  countPages++;
+
+  await addHeader(pdfDoc, page5, clientData, headerAssets);
+
+  page5.drawText("1.6 CATEGORIZAÇÃO", {
+    x: 50,
+    y: 710,
+    size: 16,
+    font: helveticaBoldFont,
+  });
+
+  const columnWidthsCategorization = [350, 145.28];
+  const rowHeightDrawCategorization = 20;
+
+  const tableDataCategorization = [
+    ["CATEGORIA", `${cleanTextForPDF(data.categoria) || " "}`],
+    ["CLASSE", `${cleanTextForPDF(data.classe) || " "}`],
+    ["FLUÍDO DE TRABALHO", `${cleanTextForPDF(data.fluidoTrabalho) || " "}`],
+    ["COMBUSTÍVEL", `${cleanTextForPDF(data.combustivel) || " "}`],
+  ];
+
+  async function drawTableCategorization({
+    page,
+    startX,
+    startY,
+    columnWidthsCategorization,
+    rowHeightDrawCategorization,
+    tableDataCategorization,
+    helveticaFont,
+    helveticaBoldFont,
+  }) {
+    const headerHeight = 20;
+    page.drawRectangle({
+      x: startX,
+      y: startY,
+      width: 495.5,
+      height: headerHeight,
+      color: rgb(0.102, 0.204, 0.396),
+    });
+
+    page.drawText("CATEGORIZAÇÃO", {
+      x: startX + 180,
+      y: startY + 5,
+      size: 10,
+      font: helveticaBoldFont,
+      color: rgb(1, 1, 1),
+    });
+
+    let currentY = startY - headerHeight;
+    for (let i = 0; i < tableDataCategorization.length; i++) {
+      const row = tableDataCategorization[i];
+      let currentX = startX;
+
+      for (let j = 0; j < row.length; j++) {
+        const cellText = cleanTextForPDF(row[j]);
+        const cellWidth = columnWidthsCategorization[j];
+
+        page.drawRectangle({
+          x: currentX,
+          y: currentY,
+          width: cellWidth,
+          height: rowHeightDrawCategorization,
+          borderWidth: 1,
+          borderColor: rgb(0.102, 0.204, 0.396),
+        });
+
+        page.drawText(cellText, {
+          x: currentX + 5,
+          y: currentY + 6,
+          size: 10,
+          font: helveticaFont,
+          color: rgb(0, 0, 0),
+        });
+
+        currentX += cellWidth;
+      }
+      currentY -= rowHeightDrawCategorization;
+    }
+  }
+
+  await drawTableCategorization({
+    page: page5,
+    startX: 50,
+    startY: 680,
+    columnWidthsCategorization,
+    rowHeightDrawCategorization,
+    tableDataCategorization,
+    helveticaFont,
+    helveticaBoldFont,
+  });
+
+  page5.drawText("1.7 PESSOAS QUE ACOMPANHARAM", {
+    x: 50,
+    y: 580,
+    size: 16,
+    font: helveticaBoldFont,
+  });
+
+  const pessoasText = cleanTextForPDF(data.pessoasAcompanharam || "Não informado");
+  await drawIndentedJustifiedText(
+    page5,
+    pessoasText,
+    50,
+    550,
+    495.28,
+    helveticaFont,
+    12,
+    4,
+    18
+  );
+
+  page5.drawText("1.8 DOCUMENTAÇÃO EXISTENTE", {
+    x: 50,
+    y: 480,
+    size: 16,
+    font: helveticaBoldFont,
+  });
+
+  const documentacaoText = cleanTextForPDF(data.documentacaoExistente || "Não informado");
+  await drawIndentedJustifiedText(
+    page5,
+    documentacaoText,
+    50,
+    450,
+    495.28,
+    helveticaFont,
+    12,
+    4,
+    18
+  );
+
+  await addFooter(pdfDoc, page5, data, countPages);
+
+  // ===================== PÁGINA 6 - DEFINIÇÃO, OBJETIVO E NORMAS =====================
+  const page6 = pdfDoc.addPage([595.28, 841.89]);
+  countPages++;
+
+  await addHeader(pdfDoc, page6, clientData, headerAssets);
+
+  page6.drawText("2. DEFINIÇÃO", {
+    x: 50,
+    y: 700,
+    size: 24,
+    font: helveticaBoldFont,
+  });
+
+  await drawIndentedJustifiedText(
+    page6,
+    "Esta Norma Regulamentadora (NR-13) estabelece requisitos mínimos para gestão da integridade estrutural de caldeiras a vapor, vasos de pressão, suas tubulações de interligação e tanques metálicos de armazenamento nos aspectos relacionados à instalação, inspeção, operação e manutenção, visando à segurança e à saúde dos trabalhadores.",
+    50,
+    664,
+    495.28,
+    helveticaFont,
+    12,
+    4,
+    20
+  );
+
+  page6.drawText("3. OBJETIVO", {
+    x: 50,
+    y: 577,
+    size: 24,
+    font: helveticaBoldFont,
+  });
+
+  await drawIndentedJustifiedText(
+    page6,
+    "Este relatório tem como objetivo registrar os resultados de uma inspeção em Caldeira sob a ótica da NR-13 aprovada pela portaria n° 3.214, de 8 de junho de 1978, e Legislação Complementar pela Portaria SEPRT n° 1.846 de 1º de julho de 2022, - NR13 CALDEIRAS, VASOS DE PRESSÃO, TUBULAÇÕES E TANQUES METÁLICOS.",
+    50,
+    544,
+    495.28,
+    helveticaFont,
+    12,
+    4,
+    20
+  );
+
+  page6.drawText("4. NORMAS", {
+    x: 50,
+    y: 460,
+    size: 24,
+    font: helveticaBoldFont,
+  });
+  page6.drawText("REFERÊNCIAS NORMATIVAS", {
+    x: 50,
+    y: 420,
+    size: 24,
+    font: helveticaBoldFont,
+  });
+
+  const startX = 50;
+  const startY = 400;
+  const columnWidthsReferencesNorms = [115.28, 380];
+  const tableDataReferencesNorms = [
+    ["NORMA", "DESCRIÇÃO"],
+    [
+      "NR-13",
+      "Caldeiras, vasos de pressão, tubulações e tanques metálicos de armazenamento",
+    ],
+    ["NBR 15417:2007", "Vasos de pressão - Inspeção de segurança em serviço"],
+    [
+      "ASME I:2015",
+      "ASME Boiler and Pressure Vessel Code An International Code - Rules for Construction of Power Boilers",
+    ],
+    [
+      "ASME II:2015",
+      "ASME Boiler and Pressure Vessel Code An International Code - Part D Properties (Customary)",
+    ],
+    [
+      "ASME VIII:2015",
+      "ASME Boiler and Pressure Vessel Code An International Code - Division 1",
+    ],
+    [
+      "NBR ISO 12100:2013",
+      "Segurança de máquinas - Princípios gerais de projeto - Apreciação e redução de riscos",
+    ],
+    [
+      "EN ISO 12100:2010",
+      "Safety of machinery - General principles for design - Risk assessment and risk reduction",
+    ],
+    [
+      "ABNT NBR ISO 16528-1:2021",
+      "Caldeiras e vasos de pressão - Parte 1: Requisitos de desempenho",
+    ],
+  ];
+
+  // Função para quebrar texto
+  function wrapTextNorms(text, maxWidth, font, fontSize) {
+    const words = text.split(" ");
+    let lines = [];
+    let currentLine = "";
+
     for (const word of words) {
-      const testLine = currentLine ? `${currentLine} ${word}` : word;
+      const testLine = currentLine + (currentLine ? " " : "") + word;
       const testWidth = font.widthOfTextAtSize(testLine, fontSize);
 
-      if (testWidth > maxWidth - indent && currentLine) {
+      if (testWidth > maxWidth) {
         lines.push(currentLine);
         currentLine = word;
       } else {
@@ -1085,31 +1564,397 @@ CREA: ${cleanTextForPDF(engenieerData.crea) || " "}`,
     }
     if (currentLine) lines.push(currentLine);
 
-    // Desenha cada linha
-    let currentY = y;
-    lines.forEach((line, index) => {
-      const isFirstLine = index === 0;
-      const lineX = isFirstLine ? x + indent : x;
-      
-      page.drawText(cleanTextForPDF(line), {
-        x: lineX,
-        y: currentY,
-        size: fontSize,
-        font: font,
-        color: rgb(0, 0, 0),
-      });
-      
-      currentY -= lineHeight;
-    });
-
-    return currentY; // Retorna a posição Y final
+    return lines;
   }
 
-  // ===================== CONTINUAÇÃO DAS PÁGINAS =====================
-  // Aqui você pode continuar adicionando as outras páginas seguindo o mesmo padrão
-  // com as correções aplicadas...
+  const defaultFontSize = 10;
+  const lineHeight = 16;
+  let currentY = startY;
 
-  // ===================== PÁGINA FINAL - RECOMENDAÇÕES =====================
+  for (let i = 0; i < tableDataReferencesNorms.length; i++) {
+    const row = tableDataReferencesNorms[i];
+    let currentX = startX;
+    let rowHeight = 0;
+
+    // Calcula a altura necessária para a linha atual
+    const cellLines = row.map((cell, index) =>
+      wrapTextNorms(
+        cleanTextForPDF(cell),
+        columnWidthsReferencesNorms[index] - 10,
+        i === 0 ? helveticaBoldFont : helveticaFont,
+        defaultFontSize
+      )
+    );
+    rowHeight =
+      Math.max(...cellLines.map((lines) => lines.length)) * lineHeight;
+
+    // Desenha cada célula da linha
+    for (let j = 0; j < row.length; j++) {
+      const text = cleanTextForPDF(row[j]);
+      const cellWidth = columnWidthsReferencesNorms[j];
+      const lines = cellLines[j];
+
+      // Desenha o fundo da célula
+      page6.drawRectangle({
+        x: currentX,
+        y: currentY - rowHeight,
+        width: cellWidth,
+        height: rowHeight,
+        color: i === 0 ? rgb(0.102, 0.204, 0.396) : rgb(1, 1, 1),
+        borderColor: rgb(0.102, 0.204, 0.396),
+        borderWidth: 1,
+      });
+
+      // Desenha o texto na célula
+      for (let k = 0; k < lines.length; k++) {
+        page6.drawText(cleanTextForPDF(lines[k]), {
+          x: currentX + 5,
+          y: currentY - 12 - k * lineHeight,
+          size: defaultFontSize,
+          font: i === 0 ? helveticaBoldFont : helveticaFont,
+          color: i === 0 ? rgb(1, 1, 1) : rgb(0, 0, 0),
+        });
+      }
+
+      currentX += cellWidth;
+    }
+
+    currentY -= rowHeight;
+  }
+
+  await addFooter(pdfDoc, page6, data, countPages);
+
+  // ===================== SEÇÃO 5 - CARACTERIZAÇÃO =====================
+  
+  // Função para gerar páginas de dispositivos
+  async function generateDevicesPDF(pdfDoc, devicesData) {
+    if (!devicesData || Object.keys(devicesData).length === 0) {
+      console.log("Nenhum dispositivo encontrado para gerar páginas");
+      return;
+    }
+
+    for (const [index, device] of Object.entries(devicesData || {})) {
+      const pageWidth = 595.28;
+      const pageHeight = 841.89;
+      const pageDevice = pdfDoc.addPage([pageWidth, pageHeight]);
+      countPages++;
+
+      await addHeader(pdfDoc, pageDevice, clientData, headerAssets);
+
+      pageDevice.drawText("5. CARACTERIZAÇÃO", {
+        x: 50,
+        y: 700,
+        size: 24,
+        font: helveticaBoldFont,
+      });
+      pageDevice.drawText("5.1 DISPOSITIVOS", {
+        x: 50,
+        y: 664,
+        size: 16,
+        font: helveticaBoldFont,
+      });
+      let cursorY = 640;
+
+      const deviceType =
+        device["Tipo de dispositivo"]?.toUpperCase() || "TIPO NÃO ESPECIFICADO";
+      const headerHeight = 20;
+
+      pageDevice.drawRectangle({
+        x: 50,
+        y: cursorY - headerHeight,
+        width: 500,
+        height: headerHeight,
+        color: rgb(0.102, 0.204, 0.396), // Azul #4a89dc
+        borderColor: rgb(0.102, 0.204, 0.396),
+        borderWidth: 1,
+      });
+
+      const textWidth = helveticaFont.widthOfTextAtSize(deviceType, 12);
+      const textX = (pageWidth - textWidth) / 2;
+
+      pageDevice.drawText(cleanTextForPDF(deviceType), {
+        x: textX,
+        y: cursorY - headerHeight + 5,
+        size: 12,
+        font: helveticaBoldFont,
+        color: rgb(1, 1, 1),
+      });
+
+      cursorY -= headerHeight + 5;
+
+      if (device["Imagens"] && device["Imagens"].length > 0) {
+        for (const imageUrl of device["Imagens"]) {
+          console.log(`Processando imagem para o dispositivo: ${deviceType}`);
+          const imageWidth = 200;
+          const imageHeight = 200;
+          const imageX = (pageWidth - imageWidth) / 2;
+          const imageY = cursorY - imageHeight;
+
+          pageDevice.drawRectangle({
+            x: 50,
+            y: imageY - 5,
+            width: 500,
+            height: imageHeight + 10,
+            color: rgb(1, 1, 1),
+            borderColor: rgb(0.102, 0.204, 0.396),
+            borderWidth: 1,
+          });
+
+          await addFirebaseImageToPDF(pdfDoc, pageDevice, imageUrl, {
+            x: imageX,
+            y: cursorY - 200,
+            width: 200,
+            height: 200,
+          });
+          cursorY -= 210; // Ajusta a posição após exibir a imagem
+        }
+      }
+
+      // Detalhes adicionais do dispositivo
+      Object.entries(device)
+        .filter(([key]) => key !== "Imagens" && key !== "Tipo de dispositivo")
+        .forEach(([key, value]) => {
+          const text = `${key}: ${cleanTextForPDF(value) || ""}`;
+          const textHeight = 15;
+
+          pageDevice.drawRectangle({
+            x: 50,
+            y: cursorY - textHeight + 5,
+            width: 500,
+            height: textHeight,
+            color: rgb(1, 1, 1), // Fundo branco
+            borderColor: rgb(0.102, 0.204, 0.396),
+            borderWidth: 1,
+          });
+
+          pageDevice.drawText(cleanTextForPDF(text), {
+            x: 55,
+            y: cursorY - textHeight + 10,
+            size: 10,
+            font: helveticaFont,
+            color: rgb(0, 0, 0),
+          });
+
+          cursorY -= textHeight;
+        });
+      await addFooter(pdfDoc, pageDevice, data, countPages);
+    }
+  }
+
+  // Gera o PDF para dispositivos
+  await generateDevicesPDF(pdfDoc, data.inspection?.devicesData);
+
+  // ===================== SEÇÃO 5.2 - MAPA DE MEDIÇÃO =====================
+  const pageMapMedition = pdfDoc.addPage([595.28, 841.89]);
+  countPages++;
+
+  await addHeader(pdfDoc, pageMapMedition, clientData, headerAssets);
+
+  pageMapMedition.drawText("5.2 MAPA DE MEDIÇÃO", {
+    x: 50,
+    y: 700,
+    size: 16,
+    font: helveticaBoldFont,
+  });
+
+  // Função para preparar imagens de medição
+  async function prepararImagensDeMedicao(pdfDoc, mapOfMedition) {
+    const imagens = {};
+
+    for (const key of Object.keys(mapOfMedition || {})) {
+      const imageKey = `image${key[0].toUpperCase()}${key.slice(1)}`;
+      const imageURL = mapOfMedition[key]?.[imageKey];
+
+      if (imageURL) {
+        try {
+          const response = await axios.get(imageURL, { responseType: "arraybuffer" });
+          const optimized = await sharp(response.data)
+            .resize({ width: 200 })
+            .jpeg({ quality: 60 })
+            .toBuffer();
+
+          imagens[imageKey] = await pdfDoc.embedJpg(optimized);
+        } catch (error) {
+          console.error(`Erro ao carregar imagem ${imageKey}:`, error.message);
+          imagens[imageKey] = null;
+        }
+      }
+    }
+
+    return imagens;
+  }
+
+  // Função para adicionar dados de inspeção ao PDF
+  async function addInspectionDataToPDF(
+    page,
+    pdfDoc,
+    data,
+    startX,
+    startY,
+    font,
+    fontBold,
+    imagensDeMedicaoOtimizadas,
+    clientData,
+    headerAssets
+  ) {
+    const headerHeight = 20; // Altura para o cabeçalho de cada seção
+    const boxPadding = 10; // Padding das caixas
+    const imageSize = 200; // Tamanho das imagens
+    let currentY = startY;
+
+    // Verifica se existem medições
+    const filteredMeditionData = Object.entries(
+      data.inspection?.mapOfMedition || {}
+    ).filter(([key, value]) =>
+      Object.keys(value).some(
+        (subKey) =>
+          value[subKey] &&
+          (typeof value[subKey] === "string" ||
+            (Array.isArray(value[subKey]) && value[subKey].length > 0))
+      )
+    );
+
+    for (const [key, value] of filteredMeditionData) {
+      // Cabeçalho da seção
+      const sectionTitle = key.toUpperCase() || "Tipo não especificado";
+
+      page.drawRectangle({
+        x: 50,
+        y: currentY - headerHeight,
+        width: 500,
+        height: headerHeight,
+        color: rgb(0.102, 0.204, 0.396),
+        borderColor: rgb(0.102, 0.204, 0.396),
+        borderWidth: 1,
+      });
+
+      const textWidth = helveticaFont.widthOfTextAtSize(sectionTitle, 12);
+      const textX = (598.28 - textWidth) / 2;
+
+      page.drawText(cleanTextForPDF(sectionTitle), {
+        x: textX,
+        y: currentY - headerHeight + 5,
+        size: 12,
+        font: fontBold,
+        color: rgb(1, 1, 1),
+      });
+
+      currentY -= headerHeight;
+
+      // Renderizar imagem, se embutida previamente
+      const imageKey = `image${key[0].toUpperCase()}${key.slice(1)}`;
+      const pdfImage = imagensDeMedicaoOtimizadas[imageKey];
+
+      if (pdfImage) {
+        page.drawRectangle({
+          x: startX,
+          y: currentY - imageSize - 10,
+          width: 500,
+          height: imageSize + 10,
+          color: rgb(1, 1, 1),
+          borderColor: rgb(0.102, 0.204, 0.396),
+          borderWidth: 1,
+        });
+
+        page.drawImage(pdfImage, {
+          x: (595.28 - 200) / 2,
+          y: currentY - imageSize - 5,
+          width: 200,
+          height: 200,
+        });
+
+        currentY -= imageSize + 10;
+      } else {
+        console.warn(`Imagem otimizada não encontrada para chave: ${imageKey}`);
+      }
+
+      // Renderizar medições
+      Object.entries(value)
+        .filter(
+          ([subKey, measuresArray]) =>
+            subKey.startsWith(key) &&
+            Array.isArray(measuresArray) &&
+            measuresArray.length > 0
+        )
+        .forEach(([subKey, measuresArray]) => {
+          page.drawRectangle({
+            x: startX,
+            y: currentY - headerHeight,
+            width: 500,
+            height: headerHeight,
+            color: rgb(1, 1, 1),
+            borderColor: rgb(0.102, 0.204, 0.396),
+            borderWidth: 1,
+          });
+
+          page.drawText(cleanTextForPDF(`${subKey}:`), {
+            x: startX + 10,
+            y: currentY - 15,
+            size: 10,
+            font: fontBold,
+            color: rgb(0, 0, 0),
+          });
+
+          currentY -= 20;
+
+          const measuresText = measuresArray
+            .map((measure) => `P${measure.id}: ${measure.valor}`)
+            .join(", ");
+
+          page.drawRectangle({
+            x: startX,
+            y: currentY - headerHeight,
+            width: 500,
+            height: headerHeight,
+            color: rgb(1, 1, 1),
+            borderColor: rgb(0.102, 0.204, 0.396),
+            borderWidth: 1,
+          });
+
+          page.drawText(cleanTextForPDF(measuresText), {
+            x: startX + 10,
+            y: currentY - 15,
+            size: 10,
+            font,
+            color: rgb(0, 0, 0),
+          });
+
+          currentY -= 20;
+
+          if (currentY < 340) {
+            page = pdfDoc.addPage();
+            countPages++;
+            addHeader(pdfDoc, page, clientData, headerAssets);
+            pageMapMedition.drawText("5.2 MAPA DE MEDIÇÃO", {
+              x: 50,
+              y: 700,
+              size: 16,
+              font: helveticaBoldFont,
+            });
+            currentY = startY;
+          }
+        });
+
+      await addFooter(pdfDoc, page, data, countPages);
+    }
+  }
+
+  const imagensDeMedicaoOtimizadas = await prepararImagensDeMedicao(pdfDoc, data.inspection?.mapOfMedition);
+
+  await addInspectionDataToPDF(
+    pageMapMedition,
+    pdfDoc,
+    data,
+    50,
+    690,
+    helveticaFont,
+    helveticaBoldFont,
+    imagensDeMedicaoOtimizadas,
+    clientData,
+    headerAssets,
+  );
+
+  // ===================== SEÇÃO 6 - RECOMENDAÇÕES =====================
   const pageRecommendations = pdfDoc.addPage([595.28, 841.89]);
   countPages++;
 
@@ -1122,30 +1967,128 @@ CREA: ${cleanTextForPDF(engenieerData.crea) || " "}`,
     font: helveticaBoldFont,
   });
 
-  // Texto corrigido com melhor português
-  const recommendationsText = `
-A atenção com a caldeira deve ser redobrada nos períodos noturnos, pois nesses períodos ocorre a maioria dos acidentes graves com caldeiras.
+  // Função para criar páginas de recomendações
+  async function createRecommendationsPages(
+    pdfDoc,
+    page,
+    startX,
+    startY,
+    projectJSON
+  ) {
+    const font = helveticaFont;
+    const fontSize = 10;
+    const colWidth = 500; // Largura total para a célula
 
-Não deve ser permitida a presença de pessoas estranhas ao serviço na casa da caldeira, e muito menos operar a caldeira.
+    const splitTextIntoLines = (text, maxWidth) => {
+      const words = text.split(" ");
+      const lines = [];
+      let currentLine = "";
 
-Em caso de qualquer anomalia, o inspetor deve ser alertado imediatamente.
+      words.forEach((word) => {
+        const testLine = currentLine ? `${currentLine} ${word}` : word;
+        const textWidth = font.widthOfTextAtSize(testLine, fontSize);
 
-Todos os procedimentos de segurança devem ser rigorosamente seguidos durante a fabricação e instalação dos equipamentos.
-  `;
+        if (textWidth <= maxWidth) {
+          currentLine = testLine;
+        } else {
+          lines.push(currentLine);
+          currentLine = word;
+        }
+      });
 
-  await drawIndentedJustifiedText(
-    pageRecommendations,
-    recommendationsText.trim(),
-    50,
-    660,
-    495.28,
-    helveticaFont,
-    12,
-    4,
-    18
-  );
+      if (currentLine) {
+        lines.push(currentLine);
+      }
 
-  await addFooter(pdfDoc, pageRecommendations, data, countPages);
+      return lines;
+    };
+
+    const drawHeader = (x, y) => {
+      const headerHeight = 20; // Altura do cabeçalho
+      const headerText = "RECOMENDAÇÕES DA NORMA";
+      const headerWidth = font.widthOfTextAtSize(headerText, fontSize); // Largura do texto
+      const headerX = x + (colWidth - headerWidth) / 2;
+
+      page.drawRectangle({
+        x,
+        y: y - 20,
+        width: colWidth,
+        height: 20,
+        color: rgb(0.102, 0.204, 0.396),
+        borderColor: rgb(0.102, 0.204, 0.396),
+        borderWidth: 1,
+      });
+      page.drawText(headerText, {
+        x: headerX,
+        y: y - 15,
+        size: fontSize,
+        font,
+        color: rgb(1, 1, 1),
+      });
+    };
+
+    const drawRow = (x, y, label) => {
+      const lines = splitTextIntoLines(cleanTextForPDF(label), colWidth - 10); // Margem interna de 5px em cada lado
+      const requiredHeight = Math.max(lines.length * fontSize + 8, 20); // Altura é o número de linhas vezes o tamanho da fonte
+
+      // Desenha o retângulo da célula, ajustado para colar na célula anterior
+      page.drawRectangle({
+        x,
+        y: y - requiredHeight,
+        width: colWidth,
+        height: requiredHeight,
+        borderColor: rgb(0.102, 0.204, 0.396),
+        borderWidth: 1,
+      });
+
+      // Escreve o texto dentro da célula
+      lines.forEach((line, index) => {
+        const lineY = y - index * fontSize - 8; // Margem interna superior
+        page.drawText(cleanTextForPDF(line), {
+          x: x + 5,
+          y: lineY - 2,
+          size: fontSize,
+          font,
+        });
+      });
+
+      return requiredHeight; // Retorna a altura utilizada para ajustar a posição
+    };
+
+    const selectedNrDocumentationCases = JSON.parse(
+      projectJSON.inspection?.selectedNrDocumentationCases || "[]"
+    );
+    const maxHeight = startY;
+    let currentY = startY;
+
+    // Desenha o cabeçalho na primeira página
+    drawHeader(startX, currentY);
+    currentY -= 20;
+
+    for (let i = 0; i < selectedNrDocumentationCases.length; i++) {
+      const { label } = selectedNrDocumentationCases[i];
+
+      // Verifica se é necessário criar uma nova página
+      if (currentY <= 80) {
+        page = pdfDoc.addPage([595.28, 841.89]);
+        countPages++;
+        await addHeader(pdfDoc, page, clientData, headerAssets);
+        currentY = maxHeight;
+
+        // Desenha o cabeçalho da tabela na nova página
+        drawHeader(startX, currentY);
+        currentY -= 20;
+      }
+
+      // Adiciona a linha e calcula o espaço ocupado
+      const usedHeight = drawRow(startX, currentY, label);
+      currentY -= usedHeight; // Remove qualquer margem adicional
+    }
+    
+    await addFooter(pdfDoc, page, data, countPages);
+  }
+
+  await createRecommendationsPages(pdfDoc, pageRecommendations, 50, 690, data);
 
   // ===================== PÁGINA FINAL - RESPONSABILIDADE TÉCNICA =====================
   const pageResponsibility = pdfDoc.addPage([595.28, 841.89]);
