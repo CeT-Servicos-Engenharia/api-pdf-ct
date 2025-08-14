@@ -3463,6 +3463,8 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
       // Espaço extra entre parágrafos
       currentY -= lineSpacing * 2;
     }
+    return currentY;
+
   }
 
   page14.drawText("6. RECOMENDAÇÕES ADICIONAIS", {
@@ -3609,7 +3611,7 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
     font: helveticaBoldFont,
   });
 
-  await drawIndentedJustifiedText(
+  const yAfterConclusion = await drawIndentedJustifiedText(
     page15,
     data.inspection.conclusion || "Sem conclusão referente a esta inspeção",
     50,
@@ -3621,11 +3623,11 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
     20
   );
 
-  await drawIndentedJustifiedText(
+  const yAfterDisclaimer = await drawIndentedJustifiedText(
     page15,
-    "A presente inspeção não certifica projeto, materiais e mão-de-obra, utilizados durante a fabricação e instalação do equipamento, sendo de total responsabilidade do fabricante." || "Sem conclusão referente a esta inspeção",
+    "A presente inspeção não certifica projeto, materiais e mão-de-obra, utilizados durante a fabricação e instalação do equipamento, sendo de total responsabilidade do fabricante.",
     50,
-    540,
+    (yAfterConclusion - 20),
     470,
     helveticaFont,
     12,
@@ -3638,7 +3640,7 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
 
   // Dimensões do retângulo
   const rectX = 50;
-  const rectY = 465;
+  const rectY = (yAfterDisclaimer || 540) - 60;
   const rectWidth = 495.28;
   const rectHeight = 40;
 
@@ -3753,7 +3755,7 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
     page15,
     pdfDoc,
     50,
-    465,
+    rectY - 50,
     columnWidthsNextDate,
     rowHeight,
     tableDateNextInspection,
@@ -3912,7 +3914,7 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
     { title: "1.1 DADOS CADASTRAIS", page: Math.min(upTo14, pageCount) },
     { title: "1.2 RESPONSÁVEIS TÉCNICOS", page: Math.min(upTo14, pageCount) },
     { title: "1.3 CONTROLE DE REVISÃO", page: Math.min(upTo14, pageCount) },
-    { title: "1.4 INSPEÇÕES CONTRATADAS", page: Math.min(upTo14, pageCount) },
+    { title: "1.4 INSPEÇÕES CONTARTADAS", page: Math.min(upTo14, pageCount) },
     { title: "1.5 DADOS DO EQUIPAMENTO", page: Math.min(upTo15, pageCount) },
     { title: "1.6 CATEGORIZAÇÃO", page: Math.min(upTo18, pageCount) },
     { title: "1.7 PESSOAS QUE ACOMPANHARAM", page: Math.min(upTo18, pageCount) },
