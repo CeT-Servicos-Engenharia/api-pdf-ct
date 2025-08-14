@@ -3912,7 +3912,7 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
     { title: "1.1 DADOS CADASTRAIS", page: Math.min(upTo14, pageCount) },
     { title: "1.2 RESPONSÁVEIS TÉCNICOS", page: Math.min(upTo14, pageCount) },
     { title: "1.3 CONTROLE DE REVISÃO", page: Math.min(upTo14, pageCount) },
-    { title: "1.4 INSPEÇÕES CONTARTADAS", page: Math.min(upTo14, pageCount) },
+    { title: "1.4 INSPEÇÕES CONTRATADAS", page: Math.min(upTo14, pageCount) },
     { title: "1.5 DADOS DO EQUIPAMENTO", page: Math.min(upTo15, pageCount) },
     { title: "1.6 CATEGORIZAÇÃO", page: Math.min(upTo18, pageCount) },
     { title: "1.7 PESSOAS QUE ACOMPANHARAM", page: Math.min(upTo18, pageCount) },
