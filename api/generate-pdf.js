@@ -3623,17 +3623,8 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
     20
   );
 
-  const yAfterDisclaimer = await drawIndentedJustifiedText(
-    page15,
-    "A presente inspeção não certifica projeto, materiais e mão-de-obra, utilizados durante a fabricação e instalação do equipamento, sendo de total responsabilidade do fabricante.",
-    50,
-    (yAfterConclusion - 20),
-    470,
-    helveticaFont,
-    12,
-    4,
-    20
-  );
+  const yAfterDisclaimer = yAfterConclusion;
+
 
   const resultInspection = data.inspection.selectedResultInspection && data.inspection.selectedResultInspection.approved;
   console.log(resultInspection)
