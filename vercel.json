@@ -8,7 +8,11 @@
   ],
   "functions": {
     "api/options-pdf.js": {
-      "maxDuration": 60
+      "maxDuration": 60,
+      "includeFiles": [
+        "assets/**",
+        "templates/**"
+      ]
     }
   }
 }
