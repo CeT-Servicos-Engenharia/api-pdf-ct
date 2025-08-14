@@ -1,10 +1,7 @@
-// api/options-pdf.js  (CommonJS)
-
+// api/options-pdf.js (CommonJS) — compatível com múltiplos exports do gerador
 const path = require('path')
 
-// --- Carrega módulos de geração ---
 function resolveExport(mod, candidates = []) {
-  // Retorna a primeira função válida encontrada
   for (const name of candidates) {
     const fn = name ? mod?.[name] : mod
     if (typeof fn === 'function') return fn
@@ -23,8 +20,6 @@ const generateUpdatePDF = require('./pdf-update.js')
 const generateMedicalRecordPdf = require('./pdf-medical-record.js')
 
 module.exports = async function handler(req, res) {
-  console.log("Handler 'options-pdf' iniciado (GET).")
-
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Método não permitido' })
   }
@@ -40,9 +35,6 @@ module.exports = async function handler(req, res) {
 
   try {
     let pdfBuffer
-    const resolvedType = type || (updateFlag && 'update') || (openingFlag && 'opening') || (medicalRecordFlag && 'medicalRecord')
-    console.log(`Iniciando geração para tipo: ${resolvedType || 'boiler/pressure-vessel'}`)
-
     if (updateFlag) {
       pdfBuffer = await generateUpdatePDF(projectId)
     } else if (openingFlag) {
@@ -52,8 +44,8 @@ module.exports = async function handler(req, res) {
     } else {
       switch (type) {
         case 'boiler': {
-          // OBS: se seu novo módulo precisa de templatePath, ajuste aqui:
-          // pdfBuffer = await generateBoiler(projectId, { templatePath: 'templates/relatorio.pdf' })
+          // Se seu gerador de caldeira usa template local, defina aqui se quiser:
+          // pdfBuffer = await generateBoiler(projectId, { templatePath: path.resolve(process.cwd(), 'templates', 'relatorio.pdf') })
           pdfBuffer = await generateBoiler(projectId)
           break
         }
@@ -66,7 +58,6 @@ module.exports = async function handler(req, res) {
       }
     }
 
-    console.log('PDF gerado. Enviando...')
     res.setHeader('Content-Type', 'application/pdf')
     res.setHeader('Content-Disposition', 'inline; filename="relatorio.pdf"')
     return res.status(200).send(pdfBuffer)
