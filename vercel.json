@@ -1,18 +1,12 @@
 {
   "version": 2,
   "routes": [
-    {
-      "src": "/api/options-pdf",
-      "dest": "/api/options-pdf.js"
-    }
+    { "src": "/api/options-pdf", "dest": "/api/options-pdf.js" }
   ],
   "functions": {
     "api/options-pdf.js": {
       "maxDuration": 60,
-      "includeFiles": [
-        "assets/**",
-        "templates/**"
-      ]
+      "includeFiles": "{assets/**,templates/**}"
     }
   }
 }
