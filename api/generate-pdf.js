@@ -414,13 +414,13 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
   });
   page.drawText(`Fabricante: `, {
     x: 50,
-    y: 260,
+    y: 290,
     size: 14,
     font: helveticaBoldFont,
   });
   page.drawText(`${data.fabricante}`, {
     x: 128,
-    y: 260,
+    y: 290,
     size: 14,
     font: helveticaFont,
   });
@@ -3821,7 +3821,7 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
   const text2X = (pageWidth - text2Width) / 2; // Centralizado
   page15.drawText(text2, {
     x: text2X,
-    y: 215,
+    y: 207,
     size: 12,
     color: rgb(0, 0, 0),
     font: helveticaFont,
@@ -3832,7 +3832,7 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
   const text3X = (pageWidth - text3Width) / 2; // Centralizado
   page15.drawText(text3, {
     x: text3X,
-    y: 202,
+    y: 194,
     size: 12,
     color: rgb(0, 0, 0),
     font: helveticaFont,
