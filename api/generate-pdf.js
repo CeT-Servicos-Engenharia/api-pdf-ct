@@ -390,13 +390,13 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
   });
   page.drawText(`Número de série:`, {
     x: 50,
-    y: 250,
+    y: 240,
     size: 14,
     font: helveticaBoldFont,
   });
   page.drawText(`${data.numeroSerie || " "}`, {
     x: 165,
-    y: 250,
+    y: 240,
     size: 14,
     font: helveticaFont,
   });
