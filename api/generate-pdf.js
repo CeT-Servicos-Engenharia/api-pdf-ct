@@ -153,12 +153,45 @@ async function fetchImage(url) {
 }
 
 
-function formatDate(value) {
-  if (!value) return "N/A";
+function formatDate(dateInput) {
+  if (!dateInput) return "N/A";
   let s;
-  if (value instanceof Date) {
-    s = value.toISOString().slice(0, 10); // YYYY-MM-DD
+  if (Object.prototype.toString.call(dateInput) === "[object Date]") {
+    const yyyy = String(dateInput.getFullYear());
+    const mm = String(dateInput.getMonth() + 1).padStart(2, "0");
+    const dd = String(dateInput.getDate()).padStart(2, "0");
+    s = yyyy + "-" + mm + "-" + dd;
   } else {
+    s = String(dateInput).trim();
+  }
+
+  // dd/mm/yyyy
+  if (/^\d{2}\/\d{2}\/\d{4}$/.test(s)) return s;
+
+  let m;
+  // yyyy-mm-dd (ou ISO com hora)
+  m = /^(\d{4})-(\d{2})-(\d{2})/.exec(s);
+  if (m) return m[3] + "/" + m[2] + "/" + m[1];
+
+  // dd-mm-yyyy ou dd.mm.yyyy
+  m = /^(\d{2})[-.](\d{2})[-.](\d{4})$/.exec(s);
+  if (m) return m[1] + "/" + m[2] + "/" + m[3];
+
+  // yyyymmdd
+  m = /^(\d{4})(\d{2})(\d{2})$/.exec(s);
+  if (m) return m[3] + "/" + m[2] + "/" + m[1];
+
+  // Fallback: Date()
+  const d = new Date(s);
+  if (!Number.isNaN(d.getTime())) {
+    const dd = String(d.getDate()).padStart(2, '0');
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const yyyy = d.getFullYear();
+    return dd + "/" + mm + "/" + yyyy;
+  }
+  return s;
+}
+else {
     s = String(value).trim();
   }
 
