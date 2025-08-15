@@ -152,105 +152,13 @@ async function fetchImage(url) {
   }
 }
 
-
-function formatDate(dateInput) {
-  if (!dateInput) return "N/A";
-  let s;
-  if (Object.prototype.toString.call(dateInput) === "[object Date]") {
-    const yyyy = String(dateInput.getFullYear());
-    const mm = String(dateInput.getMonth() + 1).padStart(2, "0");
-    const dd = String(dateInput.getDate()).padStart(2, "0");
-    s = yyyy + "-" + mm + "-" + dd;
-  } else {
-    s = String(dateInput).trim();
-  }
-
-  // dd/mm/yyyy
-  if (/^\d{2}\/\d{2}\/\d{4}$/.test(s)) return s;
-
-  let m;
-  // yyyy-mm-dd (ou ISO com hora)
-  m = /^(\d{4})-(\d{2})-(\d{2})/.exec(s);
-  if (m) return m[3] + "/" + m[2] + "/" + m[1];
-
-  // dd-mm-yyyy ou dd.mm.yyyy
-  m = /^(\d{2})[-.](\d{2})[-.](\d{4})$/.exec(s);
-  if (m) return m[1] + "/" + m[2] + "/" + m[3];
-
-  // yyyymmdd
-  m = /^(\d{4})(\d{2})(\d{2})$/.exec(s);
-  if (m) return m[3] + "/" + m[2] + "/" + m[1];
-
-  // Fallback: Date()
-  const d = new Date(s);
-  if (!Number.isNaN(d.getTime())) {
-    const dd = String(d.getDate()).padStart(2, '0');
-    const mm = String(d.getMonth() + 1).padStart(2, '0');
-    const yyyy = d.getFullYear();
-    return dd + "/" + mm + "/" + yyyy;
-  }
-  return s;
-}
-else {
-    s = String(value).trim();
-  }
-
-  // dd/mm/yyyy (já está OK)
-  if (/^\d{2}\/\d{2}\/\d{4}$/.test(s)) return s;
-
-  let m;
-  // yyyy-mm-dd (ou ISO com hora)
-  m = /^(\d{4})-(\d{2})-(\d{2})/.exec(s);
-  if (m) return [m[3], m[2], m[1]].join('/');
-
-  // dd-mm-yyyy ou dd.mm.yyyy
-  m = /^(\d{2})[-.](\d{2})[-.](\d{4})$/.exec(s);
-  if (m) return [m[1], m[2], m[3]].join('/');
-
-  // yyyymmdd
-  m = /^(\d{4})(\d{2})(\d{2})$/.exec(s);
-  if (m) return [m[3], m[2], m[1]].join('/');
-
-  // Fallback: Date()
-  const d = new Date(s);
-  if (!Number.isNaN(d.getTime())) {
-    const dd = String(d.getDate()).padStart(2, '0');
-    const mm = String(d.getMonth() + 1).padStart(2, '0');
-    const yyyy = d.getFullYear();
-    return [dd, mm, yyyy].join('/');
-  }
-  return s;
-}
--${String(dateInput.getMonth()+1).padStart(2,"0")}-${String(dateInput.getDate()).padStart(2,"0")}`
-    : String(dateInput).trim();
-
-  // Already in DD/MM/YYYY
-  const mBR = s.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
-  if (mBR) return `${mBR[1]}/${mBR[2]}/${mBR[3]}`;
-
-  // ISO 8601 or YYYY-MM-DD...
-  const mISO = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
-  if (mISO) return `${mISO[3]}/${mISO[2]}/${mISO[1]}`;
-
-  // DD-MM-YYYY or DD.MM.YYYY
-  const mDash = s.match(/^(\d{2})[-\.](\d{2})[-\.](\d{4})$/);
-  if (mDash) return `${mDash[1]}/${mDash[2]}/${mDash[3]}`;
-
-  // Compact YYYYMMDD
-  const mCompact = s.match(/^(\d{4})(\d{2})(\d{2})$/);
-  if (mCompact) return `${mCompact[3]}/${mCompact[2]}/${mCompact[1]}`;
-
-  // Fallback: try Date()
-  const d = new Date(s);
-  if (!isNaN(d)) {
-    const dd = String(d.getDate()).padStart(2, "0");
-    const mm = String(d.getMonth() + 1).padStart(2, "0");
-    const yyyy = d.getFullYear();
-    return `${dd}/${mm}/${yyyy}`;
-  }
-  return s; // as-is
-}
-/${month}/${year}`;
+function formatDate(dateString) {
+  if (!dateString) return "N/A";
+  const date = new Date(dateString);
+  const day = String(date.getDate()).padStart(2, "0");
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const year = date.getFullYear();
+  return `${day}/${month}/${year}`;
 }
 
 async function getProjectData(projectId) {
@@ -407,7 +315,7 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
 
     const footerTextStart = `${data.numeroProjeto || " "}\nART:${data.artProjeto}`;
     const footerTextMiddle = `Eng. Mec. Cleonis Batista Santos\nEng. Mec. Seg. Thiago Wherman Candido Borges`;
-    const footerTextEnd = `C&T.0.1 | ${formattedDate}\nPágina ${pageNumber}`;
+    const footerTextEnd = `C&T.0.1 | ${data.inspection.endDate}\nPágina ${pageNumber}`;
 
     const drawMultilineText = (text, x, y, lineHeight) => {
       const lines = text.split("\n");
@@ -482,37 +390,37 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
   });
   page.drawText(`Número de série:`, {
     x: 50,
-    y: 255,
+    y: 320,
     size: 14,
     font: helveticaBoldFont,
   });
   page.drawText(`${data.numeroSerie || " "}`, {
     x: 165,
-    y: 255,
+    y: 320,
     size: 14,
     font: helveticaFont,
   });
   page.drawText(`Patrimônio/TAG: `, {
     x: 50,
-    y: 320,
+    y: 290,
     size: 14,
     font: helveticaBoldFont,
   });
   page.drawText(`${data.numeroPatrimonio || " "}  ${data.tag || " "}`, {
     x: 162,
-    y: 320,
+    y: 290,
     size: 14,
     font: helveticaFont,
   });
   page.drawText(`Fabricante: `, {
     x: 50,
-    y: 290,
+    y: 260,
     size: 14,
     font: helveticaBoldFont,
   });
   page.drawText(`${data.fabricante}`, {
     x: 128,
-    y: 290,
+    y: 260,
     size: 14,
     font: helveticaFont,
   });
@@ -831,7 +739,7 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
       `${data.numeroProjeto || " "}`,
       `${data.descricaoRevisao || " "}`,
       `${analystData.name || " "}`,
-      ` ${formatDate(data.inspection?.endDate) || "N/A"}`,
+      `${data.inspection?.endDate || "N/A"}`,
     ],
   ];
 
@@ -956,8 +864,8 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
       ]
         .filter(Boolean)
         .join(", ")}`,
-      `${formatDate(data.inspection?.startDate) || "N/A"}`,
-      ` ${formatDate(data.inspection?.endDate) || "N/A"}`,
+      `${data.inspection?.startDate || "N/A"}`,
+      `${data.inspection?.endDate || "N/A"}`,
     ],
   ];
 
@@ -3756,9 +3664,9 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
   const tableDateNextInspection = [
     ["PRÓXIMA INSPEÇÃO", "PRAZO NORMA", "PRAZO PLH"],
     [
-      ` ${formatDate(data.inspection.DateNextInspectionDocummentation) || " "}`,
-      ` ${formatDate(data.inspection.DateNextInspectionDocummentation) || " "}`,
-      ` ${formatDate(data.inspection.DateNextInspectionPLHExternal) || " "}`,
+      ` ${data.inspection.DateNextInspectionDocummentation || " "}`,
+      ` ${data.inspection.DateNextInspectionDocummentation || " "}`,
+      ` ${data.inspection.DateNextInspectionPLHExternal || " "}`,
     ],
   ];
 
@@ -3874,7 +3782,7 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
 
       page15.drawImage(signatureImage, {
         x: imageX,
-        y: 255,
+        y: 320,
         width: imageWidth,
         height: imageHeight,
         opacity: 1,
@@ -3891,17 +3799,19 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
   const lineEndX = pageWidth * 0.75;
 
   page15.drawLine({
-    start: { x: lineStartX, y: 255 },
-    end: { x: lineEndX, y: 255 },
+    start: { x: lineStartX, y: 300 },
+    end: { x: lineEndX, y: 301 },
     thickness: 1,
     color: rgb(0, 0, 0),
     opacity: 1,
   });
 
-  const text1 = `Resp. Téc ${engenieerData.name || ""}`;
+  const text1 = "Resp. Téc Cleonis Batista Santos";
   const text1Width = helveticaFont.widthOfTextAtSize(text1, 12); // Largura do texto
   const text1X = (pageWidth - text1Width) / 2; // Centralizado
-  page15.drawText(text1, { x: text1X, y: 232,
+  page15.drawText(text1, {
+    x: text1X,
+    y: 288,
     size: 12,
     color: rgb(0, 0, 0),
     font: helveticaFont,
@@ -3909,7 +3819,9 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
   const text2 = `CREA ${engenieerData.crea || " "}`;
   const text2Width = helveticaFont.widthOfTextAtSize(text2, 12); // Largura do texto
   const text2X = (pageWidth - text2Width) / 2; // Centralizado
-  page15.drawText(text2, { x: text2X, y: 215,
+  page15.drawText(text2, {
+    x: text2X,
+    y: 275,
     size: 12,
     color: rgb(0, 0, 0),
     font: helveticaFont,
@@ -3920,7 +3832,7 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
   const text3X = (pageWidth - text3Width) / 2; // Centralizado
   page15.drawText(text3, {
     x: text3X,
-    y: 194,
+    y: 262,
     size: 12,
     color: rgb(0, 0, 0),
     font: helveticaFont,
