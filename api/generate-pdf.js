@@ -390,13 +390,13 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
   });
   page.drawText(`Número de série:`, {
     x: 50,
-    y: 320,
+    y: 250,
     size: 14,
     font: helveticaBoldFont,
   });
   page.drawText(`${data.numeroSerie || " "}`, {
     x: 165,
-    y: 320,
+    y: 250,
     size: 14,
     font: helveticaFont,
   });
@@ -3782,7 +3782,7 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
 
       page15.drawImage(signatureImage, {
         x: imageX,
-        y: 320,
+        y: 250,
         width: imageWidth,
         height: imageHeight,
         opacity: 1,
@@ -3799,19 +3799,19 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
   const lineEndX = pageWidth * 0.75;
 
   page15.drawLine({
-    start: { x: lineStartX, y: 300 },
-    end: { x: lineEndX, y: 301 },
+    start: { x: lineStartX, y: 270 },
+    end: { x: lineEndX, y: 271 },
     thickness: 1,
     color: rgb(0, 0, 0),
     opacity: 1,
   });
 
-  const text1 = "Resp. Téc Cleonis Batista Santos";
+  const text1 = `Resp. Téc ${engenieerData?.name || ""}`;
   const text1Width = helveticaFont.widthOfTextAtSize(text1, 12); // Largura do texto
   const text1X = (pageWidth - text1Width) / 2; // Centralizado
   page15.drawText(text1, {
     x: text1X,
-    y: 288,
+    y: 258,
     size: 12,
     color: rgb(0, 0, 0),
     font: helveticaFont,
@@ -3821,7 +3821,7 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
   const text2X = (pageWidth - text2Width) / 2; // Centralizado
   page15.drawText(text2, {
     x: text2X,
-    y: 275,
+    y: 245,
     size: 12,
     color: rgb(0, 0, 0),
     font: helveticaFont,
@@ -3832,7 +3832,7 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
   const text3X = (pageWidth - text3Width) / 2; // Centralizado
   page15.drawText(text3, {
     x: text3X,
-    y: 262,
+    y: 232,
     size: 12,
     color: rgb(0, 0, 0),
     font: helveticaFont,
