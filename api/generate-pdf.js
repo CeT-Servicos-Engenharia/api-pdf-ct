@@ -135,6 +135,7 @@ const optimizedImageBuffer = isPng
   }
 }
 
+
 let countPages = 0;
 
 async function fetchImage(url) {
@@ -305,6 +306,7 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
       console.error("Erro ao desenhar o cabeçalho:", error.message);
     }
   }
+
 
   async function addFooter(pdfDoc, page, data, pageNumber) {
     const helveticaFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
@@ -487,7 +489,14 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
         CNPJ: ${clientData.cnpj || " "} \n
         TEL.: ${clientData.phone || " "} \n
         E-mail: ${clientData.email || " "}`,
-      ` Cleonis Batista Santos \n        Rua Laudemiro José Bueno, Centro, 192 \n        CEP: 75901130 \n        CNPJ: 28.992.646/0001-11 \n        CREA: 24625/ D-GO \n        TEL.: 64992442480 \n        E-mail: cleonis@engenhariact.com.br`,
+      ` ${engenieerData.name || " "} \n
+        ${engenieerData.address || " "}, ${engenieerData.neighborhood || " "
+      }, ${engenieerData.number || " "} \n
+        CEP: ${engenieerData.cep || " "} \n
+        CNPJ: ${engenieerData.cnpj || " "} \n
+        CREA: ${engenieerData.crea || " "} \n
+        TEL.: ${engenieerData.phone || " "} \n
+        E-mail: ${engenieerData.email || " "}`,
     ],
   ];
 
@@ -730,7 +739,7 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
       `${data.numeroProjeto || " "}`,
       `${data.descricaoRevisao || " "}`,
       `${analystData.name || " "}`,
-      `${formatDate(data.inspection?.endDate) || ""}`,
+      `${data.inspection?.endDate || "N/A"}`,
     ],
   ];
 
@@ -855,12 +864,12 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
       ]
         .filter(Boolean)
         .join(", ")}`,
-      `${formatDate(data.inspection?.startDate) || ""}`,
-      `${formatDate(data.inspection?.endDate) || ""}`,
+      `${data.inspection?.startDate || "N/A"}`,
+      `${data.inspection?.endDate || "N/A"}`,
     ],
   ];
 
-  let columnWidthsDrawTableContractedInspections = [80, 205.28, 110, 100]; // total 495.28 para casar com as demais tabelas
+  let columnWidthsDrawTableContractedInspections = [80, 205.28, 110, 110];
   async function drawTableContractedInspections(
     page,
     pdfDoc,
@@ -1694,29 +1703,18 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
 
       await addHeader(pdfDoc, page8, clientData, headerAssets);
 
-      if (index == 0) {
-        page8.drawText("5. CARACTERIZAÇÃO", {
-          x: 50,
-          y: 700,
-          size: 24,
-          font: helveticaBoldFont,
-        });
-        page8.drawText("5.1 DISPOSITIVOS", {
-          x: 50,
-          y: 664,
-          size: 16,
-          font: helveticaBoldFont,
-        });
-      } else {
-        // Subtítulo discreto em páginas seguintes da seção 5.1
-        page8.drawText("Dispositivos – continuação", {
-          x: 50,
-          y: 700,
-          size: 12,
-          font: helveticaFont,
-          color: rgb(0.3, 0.3, 0.3),
-        });
-      }
+      page8.drawText("5. CARACTERIZAÇÃO", {
+        x: 50,
+        y: 700,
+        size: 24,
+        font: helveticaBoldFont,
+      });
+      page8.drawText("5.1 DISPOSITIVOS", {
+        x: 50,
+        y: 664,
+        size: 16,
+        font: helveticaBoldFont,
+      });
       let cursorY = 640;
 
       const deviceType =
@@ -1732,10 +1730,9 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
         borderColor: rgb(0.102, 0.204, 0.396),
         borderWidth: 1,
       });
-
+            // Header text (device type)
       const textWidth = helveticaFont.widthOfTextAtSize(deviceType, 12);
       const textX = (pageWidth - textWidth) / 2;
-
       page8.drawText(deviceType, {
         x: textX,
         y: cursorY - headerHeight + 5,
@@ -1743,65 +1740,107 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
         font: helveticaBoldFont,
         color: rgb(1, 1, 1),
       });
-
       cursorY -= headerHeight + 5;
 
-      if (device["Imagens"] && device["Imagens"].length > 0) {
-        for (const imageUrl of device["Imagens"]) {
-          console.log(`Processando imagem para o dispositivo: ${deviceType}`);
-          const imageWidth = 200;
-          const imageHeight = 200;
-          const imageX = (pageWidth - imageWidth) / 2;
-          const imageY = cursorY - imageHeight;
+// === Two-column layout: image (left) + details (right) ===
+      const leftColWidth = 260;
+      const gutter = 10;
+      const rightColWidth = 500 - leftColWidth - gutter; // 230
+      const leftX = 50;
+      const rightX = leftX + leftColWidth + gutter;
 
-          page8.drawRectangle({
-            x: 50,
-            y: imageY - 5,
-            width: 500,
-            height: imageHeight + 10,
-            color: rgb(1, 1, 1),
-            borderColor: rgb(0.102, 0.204, 0.396),
-            borderWidth: 1,
-          });
+      const imageWidth = 240;
+      const imageHeight = 200;
+      const imageX = leftX + (leftColWidth - imageWidth) / 2;
+      const imageY = cursorY - imageHeight;
 
-          await addFirebaseImageToPDF(pdfDoc, page8, imageUrl, {
-            x: imageX,
-            y: cursorY - 200,
-            width: 200,
-            height: 200,
-          });
-          cursorY -= 210; // Ajusta a posição após exibir a imagem
-        }
+      // Gather details (exclude 'Imagens' and 'Tipo de dispositivo')
+      const detailsEntries = Object.entries(device).filter(([key]) => key !== "Imagens" && key !== "Tipo de dispositivo");
+
+      const rowHeight = 15;
+      const detailsBlockHeight = Math.max(rowHeight * detailsEntries.length, 0);
+      const imageBlockHeight = imageHeight + 10; // + border padding
+      const blockHeight = Math.max(detailsBlockHeight, imageBlockHeight);
+
+      // Pre-check page break
+      if (cursorY - blockHeight <= 80) {
+        cursorY = 640;
+        page8 = pdfDoc.addPage([pageWidth, pageHeight]);
+        countPages++;
+        await addHeader(pdfDoc, page8, clientData, headerAssets);
+        // Redesenha cabeçalho do dispositivo e título
+        page8.drawRectangle({
+          x: 50,
+          y: cursorY - headerHeight,
+          width: 500,
+          height: headerHeight,
+          color: rgb(0.102, 0.204, 0.396),
+          borderColor: rgb(0.102, 0.204, 0.396),
+          borderWidth: 1,
+        });
+        const headerTextWidth = helveticaFont.widthOfTextAtSize(deviceType, 12);
+        const headerTextX = (pageWidth - headerTextWidth) / 2;
+        page8.drawText(deviceType, {
+          x: headerTextX,
+          y: cursorY - 15,
+          size: 12,
+          font: fontBold,
+          color: rgb(1, 1, 1),
+        });
       }
 
-      // Detalhes adicionais do dispositivo
-      Object.entries(device)
-        .filter(([key]) => key !== "Imagens" && key !== "Tipo de dispositivo")
-        .forEach(([key, value]) => {
-          const text = `${key}: ${value || ""}`;
-          const textHeight = 15;
+      // Left column border area for image
+      page8.drawRectangle({
+        x: leftX,
+        y: imageY - 5,
+        width: leftColWidth,
+        height: imageHeight + 10,
+        color: rgb(1, 1, 1),
+        borderColor: rgb(0.102, 0.204, 0.396),
+        borderWidth: 1,
+      });
 
-          page8.drawRectangle({
-            x: 50,
-            y: cursorY - textHeight + 5,
-            width: 500,
-            height: textHeight,
-            color: rgb(1, 1, 1), // Fundo branco
-            borderColor: rgb(0.102, 0.204, 0.396),
-            borderWidth: 1,
-          });
-
-          page8.drawText(text, {
-            x: 55,
-            y: cursorY - textHeight + 10,
-            size: 10,
-            font: helveticaFont,
-            color: rgb(0, 0, 0),
-          });
-
-          cursorY -= textHeight;
+      // Draw only the first image in left column (if exists)
+      const firstImageUrl = Array.isArray(device["Imagens"]) ? device["Imagens"][0] : null;
+      if (firstImageUrl) {
+        await addFirebaseImageToPDF(pdfDoc, page8, firstImageUrl, {
+          x: imageX,
+          y: imageY,
+          width: imageWidth,
+          height: imageHeight,
         });
-      await addFooter(pdfDoc, page8, data, countPages);
+      }
+
+      // Right column details
+      let yRight = cursorY;
+      for (const [key, value] of detailsEntries) {
+        const text = `${key}: ${value || ""}`;
+
+        // Row border
+        page8.drawRectangle({
+          x: rightX,
+          y: yRight - rowHeight + 5,
+          width: rightColWidth,
+          height: rowHeight,
+          color: rgb(1, 1, 1),
+          borderColor: rgb(0.102, 0.204, 0.396),
+          borderWidth: 1,
+        });
+
+        page8.drawText(text, {
+          x: rightX + 5,
+          y: yRight - rowHeight + 10,
+          size: 10,
+          font: helveticaFont,
+          color: rgb(0, 0, 0),
+        });
+
+        yRight -= rowHeight;
+      }
+
+      // Move cursor after the block
+      cursorY -= blockHeight;
+await addFooter(pdfDoc, page8, data, countPages);
     }
   }
 
@@ -1847,6 +1886,7 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
 
     return imagens;
   }
+
 
   async function addInspectionDataToPDF(
     page9,
@@ -3093,19 +3133,6 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
         currentY -= 20;
       }
 
-      // Pré-checa a altura necessária para não invadir o rodapé
-      {
-        const _preLines = splitTextIntoLines(label, colWidth - 10);
-        const _need = Math.max(_preLines.length * fontSize + 8, 20);
-        if ((currentY - _need) <= 80) {
-          page = pdfDoc.addPage([595.28, 841.89]);
-          countPages++;
-          await addHeader(pdfDoc, page, clientData, headerAssets);
-          currentY = maxHeight;
-          drawHeader(startX, currentY);
-          currentY -= 20;
-        }
-      }
       // Adiciona a linha e calcula o espaço ocupado
       const usedHeight = drawRow(startX, currentY, label);
       currentY -= usedHeight; // Remove qualquer margem adicional
@@ -3333,13 +3360,11 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
       if (imageCount === 6 && i < imagensOtimizadas.length - 1) {
         page = pdfDoc.addPage();
         await addHeader(pdfDoc, page, clientData, headerAssets);
-        // subtítulo de continuação
-        page.drawText("Registros fotográficos – continuação", {
+        page.drawText("5.5 REGISTROS FOTOGRÁFICOS", {
           x: 50,
           y: 700,
-          size: 12,
-          font: helveticaFont,
-          color: rgb(0.3, 0.3, 0.3)
+          size: 16,
+          font: helveticaBoldFont,
         });
         countPagesRef.value++;
         currentX = startX;
@@ -3349,6 +3374,7 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
       }
     }
   }
+
 
   const imagensOtimizadas = await baixarEComprimirTodasImagens(data.inspection.images);
   const imagensComLegenda = Array.isArray(data.inspection.imagesWithCaptions)
@@ -3374,6 +3400,7 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
   );
 
   countPages = countPagesRef.value;
+
 
   await addFooter(pdfDoc, page13, data, (countPages - 2));
 
@@ -3566,7 +3593,7 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
 
   await drawIndentedJustifiedText(
     page14,
-    "Observar rigorosamente os marcadores de nível de água. Esta operação é muito importante, visto que aumenta a segurança da caldeira. Se não for possível detectar o nível de água no marcador, o visor deve ser substituído. Realizar a descarga do mesmo uma vez ao dia para ter certeza que a marcação é correta.\n Recomendo que as válvulas sejam testadas manualmente uma vez por mês no mínimo, para verificar seu pronto funcionamento. Deve ser anotada no livro de registro da caldeira, toda manutenção que for realizada nas válvulas e na caldeira.\n Não ultrapassar a Máxima Pressão de Trabalho Admissível (MPTA) da caldeira em hipótese alguma; caso isto venha ocorrer desligue a caldeira e comunique imediatamente sua chefia.\n Toda manutenção que for realizada em qualquer área de pressão do equipamento, deve ser feita por pessoa qualificada, e anotado no livro de registro.\n Não travar ou amarrar as válvulas de segurança, elas são a real segurança da caldeira.\n A caldeira só poderá ser operada por pessoa qualificada de acordo com a legislação vigente Portaria 3214 NR-13 de 08-06-78.\n Anotar sistematicamente no livro de segurança da caldeira toda manutenção, reparo, troca de peças, durante o turno de trabalho, todas essas devem ser assinadas pelo operador da caldeira credenciado.\nQualquer anomalia o inspetor deve ser alertado imediatamente.\nToda atenção com a caldeira deve ser REDOBRADA nos períodos NOTURNOS, pois nestes períodos ocorrem as maiorias dos acidentes graves com a caldeira.\n\n",
+    "Observar rigorosamente os marcadores de nível de água. Esta operação é muito importante, visto que aumenta a segurança da caldeira. Se não for possível detectar o nível de água no marcador, o visor deve ser substituído. Realizar a descarga do mesmo uma vez ao dia para ter certeza que a marcação é correta.\n Recomendo que as válvulas sejam testadas manualmente uma vez por mês no mínimo, para verificar seu pronto funcionamento. Deve ser anotada no livro de registro da caldeira, toda manutenção que for realizada nas válvulas e na caldeira.\n Não ultrapassar a Máxima Pressão de Trabalho Admissível (MPTA) da caldeira em hipótese alguma; caso isto venha ocorrer desligue a caldeira e comunique imediatamente sua chefia.\n Toda manutenção que for realizada em qualquer área de pressão do equipamento, deve ser feita por pessoa qualificada, e anotado no livro de registro.\n Não travar ou amarrar as válvulas de segurança, elas são a real segurança da caldeira.\n A caldeira só poderá ser operada por pessoa qualificada de acordo com a legislação vigente Portaria 3214 NR-13 de 08-06-78.\n Anotar sistematicamente no livro de segurança da caldeira toda manutenção, reparo, troca de peças, durante o turno de trabalho, todas essas devem ser assinadas pelo operador da caldeira credenciado.\nQualquer anomalia o inspetor deve ser alertado imediatamente.\nToda atenção com a caldeira deve ser REDOBRADA nos períodos NOTURNOS, pois nestes períodos ocorrem as maiorias dos acidentes graves com a caldeira.\nNão deve ser permitida a presença de pessoas estranhas ao serviço na casa da caldeira, e muito menos operar a caldeira.\nObservar constante o funcionamento do sistema Injetor de água da caldeira.",
     50, // Margem esquerda
     482, // Posição inicial no eixo Y
     470, // Largura máxima
@@ -3639,6 +3666,7 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
 
   const yAfterDisclaimer = yAfterConclusion;
 
+
   const resultInspection = data.inspection.selectedResultInspection && data.inspection.selectedResultInspection.approved;
   console.log(resultInspection)
 
@@ -3677,9 +3705,9 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
   const tableDateNextInspection = [
     ["PRÓXIMA INSPEÇÃO", "PRAZO NORMA", "PRAZO PLH"],
     [
-      ` ${formatDate(data.inspection.DateNextInspectionDocummentation) || " "}`,
-      ` ${formatDate(data.inspection.DateNextInspectionDocummentation) || " "}`,
-      ` ${formatDate(data.inspection.DateNextInspectionPLHExternal) || " "}`,
+      ` ${data.inspection.DateNextInspectionDocummentation || " "}`,
+      ` ${data.inspection.DateNextInspectionDocummentation || " "}`,
+      ` ${data.inspection.DateNextInspectionPLHExternal || " "}`,
     ],
   ];
 
@@ -3795,7 +3823,7 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
 
       page15.drawImage(signatureImage, {
         x: imageX,
-        y: 250,
+        y: 320,
         width: imageWidth,
         height: imageHeight,
         opacity: 1,
@@ -3812,40 +3840,40 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
   const lineEndX = pageWidth * 0.75;
 
   page15.drawLine({
-    start: { x: lineStartX, y: 270 },
-    end: { x: lineEndX, y: 271 },
+    start: { x: lineStartX, y: 300 },
+    end: { x: lineEndX, y: 301 },
     thickness: 1,
     color: rgb(0, 0, 0),
     opacity: 1,
   });
 
-  const text1 = `Resp. Téc ${data?.responsavelTecnico?.nome || engenieerData?.name || ""}`;
+  const text1 = "Resp. Téc Cleonis Batista Santos";
   const text1Width = helveticaFont.widthOfTextAtSize(text1, 12); // Largura do texto
   const text1X = (pageWidth - text1Width) / 2; // Centralizado
   page15.drawText(text1, {
     x: text1X,
-    y: 258,
+    y: 288,
     size: 12,
     color: rgb(0, 0, 0),
     font: helveticaFont,
   });
-  const text2 = `CREA ${data?.responsavelTecnico?.crea || engenieerData?.crea || " "}`;
+  const text2 = `CREA ${engenieerData.crea || " "}`;
   const text2Width = helveticaFont.widthOfTextAtSize(text2, 12); // Largura do texto
   const text2X = (pageWidth - text2Width) / 2; // Centralizado
   page15.drawText(text2, {
     x: text2X,
-    y: 245,
+    y: 275,
     size: 12,
     color: rgb(0, 0, 0),
     font: helveticaFont,
   });
 
-  const text3 = `${data?.responsavelTecnico?.funcao || "Engenheiro Mecânico"}`;
+  const text3 = "Engenheiro Mecânico";
   const text3Width = helveticaFont.widthOfTextAtSize(text3, 12); // Largura do texto
   const text3X = (pageWidth - text3Width) / 2; // Centralizado
   page15.drawText(text3, {
     x: text3X,
-    y: 232,
+    y: 262,
     size: 12,
     color: rgb(0, 0, 0),
     font: helveticaFont,
