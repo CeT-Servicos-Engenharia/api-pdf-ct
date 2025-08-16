@@ -3319,11 +3319,13 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
       if (imageCount === 6 && i < imagensOtimizadas.length - 1) {
         page = pdfDoc.addPage();
         await addHeader(pdfDoc, page, clientData, headerAssets);
-        page.drawText("5.5 REGISTROS FOTOGRÁFICOS", {
+        // subtítulo de continuação
+        page.drawText("Registros fotográficos – continuação", {
           x: 50,
           y: 700,
-          size: 16,
-          font: helveticaBoldFont,
+          size: 12,
+          font: helveticaFont,
+          color: rgb(0.3, 0.3, 0.3)
         });
         countPagesRef.value++;
         currentX = startX;
@@ -3782,7 +3784,7 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
 
       page15.drawImage(signatureImage, {
         x: imageX,
-        y: 250,
+        y: 320,
         width: imageWidth,
         height: imageHeight,
         opacity: 1,
@@ -3799,19 +3801,19 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
   const lineEndX = pageWidth * 0.75;
 
   page15.drawLine({
-    start: { x: lineStartX, y: 270 },
-    end: { x: lineEndX, y: 271 },
+    start: { x: lineStartX, y: 300 },
+    end: { x: lineEndX, y: 301 },
     thickness: 1,
     color: rgb(0, 0, 0),
     opacity: 1,
   });
 
-  const text1 = `Resp. Téc ${engenieerData?.name || ""}`;
+  const text1 = "Resp. Téc Cleonis Batista Santos";
   const text1Width = helveticaFont.widthOfTextAtSize(text1, 12); // Largura do texto
   const text1X = (pageWidth - text1Width) / 2; // Centralizado
   page15.drawText(text1, {
     x: text1X,
-    y: 258,
+    y: 288,
     size: 12,
     color: rgb(0, 0, 0),
     font: helveticaFont,
@@ -3821,7 +3823,7 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
   const text2X = (pageWidth - text2Width) / 2; // Centralizado
   page15.drawText(text2, {
     x: text2X,
-    y: 245,
+    y: 275,
     size: 12,
     color: rgb(0, 0, 0),
     font: helveticaFont,
@@ -3832,7 +3834,7 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
   const text3X = (pageWidth - text3Width) / 2; // Centralizado
   page15.drawText(text3, {
     x: text3X,
-    y: 232,
+    y: 262,
     size: 12,
     color: rgb(0, 0, 0),
     font: helveticaFont,
