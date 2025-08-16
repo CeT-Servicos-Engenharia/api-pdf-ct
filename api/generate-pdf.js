@@ -1705,17 +1705,16 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
 
       if (index == 0) {
         page8.drawText("5. CARACTERIZAÇÃO", {
-        x: 50,
-        y: 700,
-        size: 24,
-        font: helveticaBoldFont,
-      });
+          x: 50,
+          y: 700,
+          size: 24,
+          font: helveticaBoldFont,
+        });
         page8.drawText("5.1 DISPOSITIVOS", {
-        x: 50,
-        y: 664,
-        size: 16,
-        font: helveticaBoldFont,
-      });
+          x: 50,
+          y: 664,
+          size: 16,
+          font: helveticaBoldFont,
         });
       } else {
         // Subtítulo discreto em páginas seguintes da seção 5.1
