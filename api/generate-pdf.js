@@ -1703,18 +1703,30 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
 
       await addHeader(pdfDoc, page8, clientData, headerAssets);
 
-      page8.drawText("5. CARACTERIZAÇÃO", {
+      if (index == 0) {
+        page8.drawText("5. CARACTERIZAÇÃO", {
         x: 50,
         y: 700,
         size: 24,
         font: helveticaBoldFont,
       });
-      page8.drawText("5.1 DISPOSITIVOS", {
+        page8.drawText("5.1 DISPOSITIVOS", {
         x: 50,
         y: 664,
         size: 16,
         font: helveticaBoldFont,
       });
+        });
+      } else {
+        // Subtítulo discreto em páginas seguintes da seção 5.1
+        page8.drawText("Dispositivos – continuação", {
+          x: 50,
+          y: 700,
+          size: 12,
+          font: helveticaFont,
+          color: rgb(0.3, 0.3, 0.3),
+        });
+      }
       let cursorY = 640;
 
       const deviceType =
