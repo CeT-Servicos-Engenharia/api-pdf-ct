@@ -730,7 +730,7 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
       `${data.numeroProjeto || " "}`,
       `${data.descricaoRevisao || " "}`,
       `${analystData.name || " "}`,
-      `${data.inspection?.endDate || "N/A"}`,
+      `${formatDate(data.inspection?.endDate) || ""}`,
     ],
   ];
 
@@ -855,8 +855,8 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
       ]
         .filter(Boolean)
         .join(", ")}`,
-      `${data.inspection?.startDate || "N/A"}`,
-      `${data.inspection?.endDate || "N/A"}`,
+      `${formatDate(data.inspection?.startDate) || ""}`,
+      `${formatDate(data.inspection?.endDate) || ""}`,
     ],
   ];
 
@@ -3677,9 +3677,9 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
   const tableDateNextInspection = [
     ["PRÓXIMA INSPEÇÃO", "PRAZO NORMA", "PRAZO PLH"],
     [
-      ` ${data.inspection.DateNextInspectionDocummentation || " "}`,
-      ` ${data.inspection.DateNextInspectionDocummentation || " "}`,
-      ` ${data.inspection.DateNextInspectionPLHExternal || " "}`,
+      ` ${formatDate(data.inspection.DateNextInspectionDocummentation) || " "}`,
+      ` ${formatDate(data.inspection.DateNextInspectionDocummentation) || " "}`,
+      ` ${formatDate(data.inspection.DateNextInspectionPLHExternal) || " "}`,
     ],
   ];
 
