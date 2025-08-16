@@ -860,7 +860,7 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
     ],
   ];
 
-  let columnWidthsDrawTableContractedInspections = [80, 205.28, 110, 110];
+  let columnWidthsDrawTableContractedInspections = [80, 205.28, 110, 100]; // total 495.28 para casar com as demais tabelas
   async function drawTableContractedInspections(
     page,
     pdfDoc,
