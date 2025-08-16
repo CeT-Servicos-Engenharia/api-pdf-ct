@@ -135,6 +135,7 @@ const optimizedImageBuffer = isPng
   }
 }
 
+
 let countPages = 0;
 
 async function fetchImage(url) {
@@ -306,6 +307,7 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
     }
   }
 
+
   async function addFooter(pdfDoc, page, data, pageNumber) {
     const helveticaFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
     const pageWidth = page.getWidth(); // Obtém a largura da página
@@ -388,13 +390,13 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
   });
   page.drawText(`Número de série:`, {
     x: 50,
-    y: 320,
+    y: 250,
     size: 14,
     font: helveticaBoldFont,
   });
   page.drawText(`${data.numeroSerie || " "}`, {
     x: 165,
-    y: 320,
+    y: 250,
     size: 14,
     font: helveticaFont,
   });
@@ -1701,29 +1703,18 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
 
       await addHeader(pdfDoc, page8, clientData, headerAssets);
 
-      if (index == 0) {
-        page8.drawText("5. CARACTERIZAÇÃO", {
-          x: 50,
-          y: 700,
-          size: 24,
-          font: helveticaBoldFont,
-        });
-        page8.drawText("5.1 DISPOSITIVOS", {
-          x: 50,
-          y: 664,
-          size: 16,
-          font: helveticaBoldFont,
-        });
-      } else {
-        // Subtítulo discreto em páginas seguintes da seção 5.1
-        page8.drawText("Dispositivos – continuação", {
-          x: 50,
-          y: 700,
-          size: 12,
-          font: helveticaFont,
-          color: rgb(0.3, 0.3, 0.3),
-        });
-      }
+      page8.drawText("5. CARACTERIZAÇÃO", {
+        x: 50,
+        y: 700,
+        size: 24,
+        font: helveticaBoldFont,
+      });
+      page8.drawText("5.1 DISPOSITIVOS", {
+        x: 50,
+        y: 664,
+        size: 16,
+        font: helveticaBoldFont,
+      });
       let cursorY = 640;
 
       const deviceType =
@@ -1854,6 +1845,7 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
 
     return imagens;
   }
+
 
   async function addInspectionDataToPDF(
     page9,
@@ -3100,19 +3092,6 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
         currentY -= 20;
       }
 
-      // Pré-checa a altura necessária para não invadir o rodapé
-      {
-        const _preLines = splitTextIntoLines(label, colWidth - 10);
-        const _need = Math.max(_preLines.length * fontSize + 8, 20);
-        if ((currentY - _need) <= 80) {
-          page = pdfDoc.addPage([595.28, 841.89]);
-          countPages++;
-          await addHeader(pdfDoc, page, clientData, headerAssets);
-          currentY = maxHeight;
-          drawHeader(startX, currentY);
-          currentY -= 20;
-        }
-      }
       // Adiciona a linha e calcula o espaço ocupado
       const usedHeight = drawRow(startX, currentY, label);
       currentY -= usedHeight; // Remove qualquer margem adicional
@@ -3340,13 +3319,11 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
       if (imageCount === 6 && i < imagensOtimizadas.length - 1) {
         page = pdfDoc.addPage();
         await addHeader(pdfDoc, page, clientData, headerAssets);
-        // subtítulo de continuação
-        page.drawText("Registros fotográficos – continuação", {
+        page.drawText("5.5 REGISTROS FOTOGRÁFICOS", {
           x: 50,
           y: 700,
-          size: 12,
-          font: helveticaFont,
-          color: rgb(0.3, 0.3, 0.3)
+          size: 16,
+          font: helveticaBoldFont,
         });
         countPagesRef.value++;
         currentX = startX;
@@ -3356,6 +3333,7 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
       }
     }
   }
+
 
   const imagensOtimizadas = await baixarEComprimirTodasImagens(data.inspection.images);
   const imagensComLegenda = Array.isArray(data.inspection.imagesWithCaptions)
@@ -3381,6 +3359,7 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
   );
 
   countPages = countPagesRef.value;
+
 
   await addFooter(pdfDoc, page13, data, (countPages - 2));
 
@@ -3573,7 +3552,7 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
 
   await drawIndentedJustifiedText(
     page14,
-    "Observar rigorosamente os marcadores de nível de água. Esta operação é muito importante, visto que aumenta a segurança da caldeira. Se não for possível detectar o nível de água no marcador, o visor deve ser substituído. Realizar a descarga do mesmo uma vez ao dia para ter certeza que a marcação é correta.\n Recomendo que as válvulas sejam testadas manualmente uma vez por mês no mínimo, para verificar seu pronto funcionamento. Deve ser anotada no livro de registro da caldeira, toda manutenção que for realizada nas válvulas e na caldeira.\n Não ultrapassar a Máxima Pressão de Trabalho Admissível (MPTA) da caldeira em hipótese alguma; caso isto venha ocorrer desligue a caldeira e comunique imediatamente sua chefia.\n Toda manutenção que for realizada em qualquer área de pressão do equipamento, deve ser feita por pessoa qualificada, e anotado no livro de registro.\n Não travar ou amarrar as válvulas de segurança, elas são a real segurança da caldeira.\n A caldeira só poderá ser operada por pessoa qualificada de acordo com a legislação vigente Portaria 3214 NR-13 de 08-06-78.\n Anotar sistematicamente no livro de segurança da caldeira toda manutenção, reparo, troca de peças, durante o turno de trabalho, todas essas devem ser assinadas pelo operador da caldeira credenciado.\nQualquer anomalia o inspetor deve ser alertado imediatamente.\nToda atenção com a caldeira deve ser REDOBRADA nos períodos NOTURNOS, pois nestes períodos ocorrem as maiorias dos acidentes graves com a caldeira.\n\n",
+    "Observar rigorosamente os marcadores de nível de água. Esta operação é muito importante, visto que aumenta a segurança da caldeira. Se não for possível detectar o nível de água no marcador, o visor deve ser substituído. Realizar a descarga do mesmo uma vez ao dia para ter certeza que a marcação é correta.\n Recomendo que as válvulas sejam testadas manualmente uma vez por mês no mínimo, para verificar seu pronto funcionamento. Deve ser anotada no livro de registro da caldeira, toda manutenção que for realizada nas válvulas e na caldeira.\n Não ultrapassar a Máxima Pressão de Trabalho Admissível (MPTA) da caldeira em hipótese alguma; caso isto venha ocorrer desligue a caldeira e comunique imediatamente sua chefia.\n Toda manutenção que for realizada em qualquer área de pressão do equipamento, deve ser feita por pessoa qualificada, e anotado no livro de registro.\n Não travar ou amarrar as válvulas de segurança, elas são a real segurança da caldeira.\n A caldeira só poderá ser operada por pessoa qualificada de acordo com a legislação vigente Portaria 3214 NR-13 de 08-06-78.\n Anotar sistematicamente no livro de segurança da caldeira toda manutenção, reparo, troca de peças, durante o turno de trabalho, todas essas devem ser assinadas pelo operador da caldeira credenciado.\nQualquer anomalia o inspetor deve ser alertado imediatamente.\nToda atenção com a caldeira deve ser REDOBRADA nos períodos NOTURNOS, pois nestes períodos ocorrem as maiorias dos acidentes graves com a caldeira.\nNão deve ser permitida a presença de pessoas estranhas ao serviço na casa da caldeira, e muito menos operar a caldeira.\nObservar constante o funcionamento do sistema Injetor de água da caldeira.",
     50, // Margem esquerda
     482, // Posição inicial no eixo Y
     470, // Largura máxima
@@ -3645,6 +3624,7 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
   );
 
   const yAfterDisclaimer = yAfterConclusion;
+
 
   const resultInspection = data.inspection.selectedResultInspection && data.inspection.selectedResultInspection.approved;
   console.log(resultInspection)
@@ -3802,7 +3782,7 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
 
       page15.drawImage(signatureImage, {
         x: imageX,
-        y: 320,
+        y: 250,
         width: imageWidth,
         height: imageHeight,
         opacity: 1,
@@ -3819,29 +3799,29 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
   const lineEndX = pageWidth * 0.75;
 
   page15.drawLine({
-    start: { x: lineStartX, y: 300 },
-    end: { x: lineEndX, y: 301 },
+    start: { x: lineStartX, y: 270 },
+    end: { x: lineEndX, y: 271 },
     thickness: 1,
     color: rgb(0, 0, 0),
     opacity: 1,
   });
 
-  const text1 = "Resp. Téc Cleonis Batista Santos";
+  const text1 = `Resp. Téc ${data?.responsavelTecnico?.nome || engenieerData?.name || ""}`;
   const text1Width = helveticaFont.widthOfTextAtSize(text1, 12); // Largura do texto
   const text1X = (pageWidth - text1Width) / 2; // Centralizado
   page15.drawText(text1, {
     x: text1X,
-    y: 288,
+    y: 258,
     size: 12,
     color: rgb(0, 0, 0),
     font: helveticaFont,
   });
-  const text2 = `CREA ${engenieerData.crea || " "}`;
+  const text2 = `CREA ${data?.responsavelTecnico?.crea || engenieerData?.crea || " "}`;
   const text2Width = helveticaFont.widthOfTextAtSize(text2, 12); // Largura do texto
   const text2X = (pageWidth - text2Width) / 2; // Centralizado
   page15.drawText(text2, {
     x: text2X,
-    y: 275,
+    y: 245,
     size: 12,
     color: rgb(0, 0, 0),
     font: helveticaFont,
@@ -3852,7 +3832,7 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
   const text3X = (pageWidth - text3Width) / 2; // Centralizado
   page15.drawText(text3, {
     x: text3X,
-    y: 262,
+    y: 232,
     size: 12,
     color: rgb(0, 0, 0),
     font: helveticaFont,
