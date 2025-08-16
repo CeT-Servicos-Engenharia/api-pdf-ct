@@ -3103,6 +3103,19 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
         currentY -= 20;
       }
 
+      // Pré-checa a altura necessária para não invadir o rodapé
+      {
+        const _preLines = splitTextIntoLines(label, colWidth - 10);
+        const _need = Math.max(_preLines.length * fontSize + 8, 20);
+        if ((currentY - _need) <= 80) {
+          page = pdfDoc.addPage([595.28, 841.89]);
+          countPages++;
+          await addHeader(pdfDoc, page, clientData, headerAssets);
+          currentY = maxHeight;
+          drawHeader(startX, currentY);
+          currentY -= 20;
+        }
+      }
       // Adiciona a linha e calcula o espaço ocupado
       const usedHeight = drawRow(startX, currentY, label);
       currentY -= usedHeight; // Remove qualquer margem adicional
