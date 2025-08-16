@@ -135,7 +135,6 @@ const optimizedImageBuffer = isPng
   }
 }
 
-
 let countPages = 0;
 
 async function fetchImage(url) {
@@ -306,7 +305,6 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
       console.error("Erro ao desenhar o cabeçalho:", error.message);
     }
   }
-
 
   async function addFooter(pdfDoc, page, data, pageNumber) {
     const helveticaFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
@@ -1857,7 +1855,6 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
     return imagens;
   }
 
-
   async function addInspectionDataToPDF(
     page9,
     pdfDoc,
@@ -3360,7 +3357,6 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
     }
   }
 
-
   const imagensOtimizadas = await baixarEComprimirTodasImagens(data.inspection.images);
   const imagensComLegenda = Array.isArray(data.inspection.imagesWithCaptions)
     ? data.inspection.imagesWithCaptions.map(img => img.caption)
@@ -3385,7 +3381,6 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
   );
 
   countPages = countPagesRef.value;
-
 
   await addFooter(pdfDoc, page13, data, (countPages - 2));
 
@@ -3578,7 +3573,7 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
 
   await drawIndentedJustifiedText(
     page14,
-    "Observar rigorosamente os marcadores de nível de água. Esta operação é muito importante, visto que aumenta a segurança da caldeira. Se não for possível detectar o nível de água no marcador, o visor deve ser substituído. Realizar a descarga do mesmo uma vez ao dia para ter certeza que a marcação é correta.\n Recomendo que as válvulas sejam testadas manualmente uma vez por mês no mínimo, para verificar seu pronto funcionamento. Deve ser anotada no livro de registro da caldeira, toda manutenção que for realizada nas válvulas e na caldeira.\n Não ultrapassar a Máxima Pressão de Trabalho Admissível (MPTA) da caldeira em hipótese alguma; caso isto venha ocorrer desligue a caldeira e comunique imediatamente sua chefia.\n Toda manutenção que for realizada em qualquer área de pressão do equipamento, deve ser feita por pessoa qualificada, e anotado no livro de registro.\n Não travar ou amarrar as válvulas de segurança, elas são a real segurança da caldeira.\n A caldeira só poderá ser operada por pessoa qualificada de acordo com a legislação vigente Portaria 3214 NR-13 de 08-06-78.\n Anotar sistematicamente no livro de segurança da caldeira toda manutenção, reparo, troca de peças, durante o turno de trabalho, todas essas devem ser assinadas pelo operador da caldeira credenciado.\nQualquer anomalia o inspetor deve ser alertado imediatamente.\nToda atenção com a caldeira deve ser REDOBRADA nos períodos NOTURNOS, pois nestes períodos ocorrem as maiorias dos acidentes graves com a caldeira.\nNão deve ser permitida a presença de pessoas estranhas ao serviço na casa da caldeira, e muito menos operar a caldeira.\nObservar constante o funcionamento do sistema Injetor de água da caldeira.",
+    "Observar rigorosamente os marcadores de nível de água. Esta operação é muito importante, visto que aumenta a segurança da caldeira. Se não for possível detectar o nível de água no marcador, o visor deve ser substituído. Realizar a descarga do mesmo uma vez ao dia para ter certeza que a marcação é correta.\n Recomendo que as válvulas sejam testadas manualmente uma vez por mês no mínimo, para verificar seu pronto funcionamento. Deve ser anotada no livro de registro da caldeira, toda manutenção que for realizada nas válvulas e na caldeira.\n Não ultrapassar a Máxima Pressão de Trabalho Admissível (MPTA) da caldeira em hipótese alguma; caso isto venha ocorrer desligue a caldeira e comunique imediatamente sua chefia.\n Toda manutenção que for realizada em qualquer área de pressão do equipamento, deve ser feita por pessoa qualificada, e anotado no livro de registro.\n Não travar ou amarrar as válvulas de segurança, elas são a real segurança da caldeira.\n A caldeira só poderá ser operada por pessoa qualificada de acordo com a legislação vigente Portaria 3214 NR-13 de 08-06-78.\n Anotar sistematicamente no livro de segurança da caldeira toda manutenção, reparo, troca de peças, durante o turno de trabalho, todas essas devem ser assinadas pelo operador da caldeira credenciado.\nQualquer anomalia o inspetor deve ser alertado imediatamente.\nToda atenção com a caldeira deve ser REDOBRADA nos períodos NOTURNOS, pois nestes períodos ocorrem as maiorias dos acidentes graves com a caldeira.\n\n",
     50, // Margem esquerda
     482, // Posição inicial no eixo Y
     470, // Largura máxima
@@ -3650,7 +3645,6 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
   );
 
   const yAfterDisclaimer = yAfterConclusion;
-
 
   const resultInspection = data.inspection.selectedResultInspection && data.inspection.selectedResultInspection.approved;
   console.log(resultInspection)
