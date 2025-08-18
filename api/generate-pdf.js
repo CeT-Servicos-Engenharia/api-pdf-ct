@@ -1990,13 +1990,14 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
             page9 = pdfDoc.addPage();
             countPages++;
             addHeader(pdfDoc, page9, clientData, headerAssets);
-            page9.drawText("5.2 MAPA DE MEDIÇÃO", {
+            page9.drawText("Mapa de Medição – continuação", {
               x: 50,
               y: 700,
-              size: 16,
-              font: helveticaBoldFont,
+              size: 12,
+              font: font,
+              color: rgb(0.3, 0.3, 0.3),
             });
-            currentY = startY;
+            currentY = 640;
           }
         });
 
