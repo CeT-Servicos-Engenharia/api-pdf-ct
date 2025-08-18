@@ -1985,36 +1985,23 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
           currentY -= 20;
 
           const minSpace = imageSize + boxPadding + headerHeight + 40; // espaço mínimo para próximo bloco
-          if ((currentY - minSpace) < 80) { // 80 = margem inferior
-            addFooter(pdfDoc, page9, data, countPages);
-            page9 = pdfDoc.addPage();
-            countPages++;
-            addHeader(pdfDoc, page9, clientData, headerAssets);
-            page9.drawText("Mapa de Medição – continuação", {
-              x: 50,
-              y: 700,
-              size: 12,
-              font: helveticaFont,
-              color: rgb(0.3, 0.3, 0.3),
-            });
-            currentY = 640;
-          } else {
-            // ainda cabe conteúdo, não desenhar rodapé agora
-          }
-          
-          
-            countPages++;
-            addHeader(pdfDoc, page9, clientData, headerAssets);
-            page9.drawText("Mapa de Medição – continuação", {
-              x: 50,
-              y: 700,
-              size: 12,
-              font: font,
-              color: rgb(0.3, 0.3, 0.3),
-            });
-            currentY = 640;
-          }
-        });
+if ((currentY - minSpace) < 80) { // 80 = margem inferior
+  addFooter(pdfDoc, page9, data, countPages);
+  page9 = pdfDoc.addPage();
+  countPages++;
+  addHeader(pdfDoc, page9, clientData, headerAssets);
+  page9.drawText("Mapa de Medição – continuação", {
+    x: 50,
+    y: 700,
+    size: 12,
+    font: helveticaFont,
+    color: rgb(0.3, 0.3, 0.3),
+  });
+  currentY = 640;
+} else {
+  // ainda cabe conteúdo, não desenhar rodapé agora
+}
+});
 
       await addFooter(pdfDoc, page9, data, countPages);
     }
