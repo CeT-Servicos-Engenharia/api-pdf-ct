@@ -313,7 +313,7 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
 
     const footerTextStart = `${data.numeroProjeto || " "}\nART:${data.artProjeto}`;
     const footerTextMiddle = `Eng. Mec. Cleonis Batista Santos\nEng. Mec. Seg. Thiago Wherman Candido Borges`;
-    const footerTextEnd = `C&T.0.1 | ${data.inspection.endDate}\nPágina ${pageNumber}`;
+    const footerTextEnd = `C&T.0.1 | ${formattedDate}\nPágina ${pageNumber}`;
 
     const drawMultilineText = (text, x, y, lineHeight) => {
       const lines = text.split("\n");
@@ -1990,11 +1990,12 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
             page9 = pdfDoc.addPage();
             countPages++;
             addHeader(pdfDoc, page9, clientData, headerAssets);
-            page9.drawText("5.2 MAPA DE MEDIÇÃO", {
+            page9.drawText("Mapa de medição – continuação", {
               x: 50,
               y: 700,
-              size: 16,
-              font: helveticaBoldFont,
+              size: 12,
+              font: helveticaFont,
+              color: rgb(0.3, 0.3, 0.3),
             });
             currentY = startY;
           }
