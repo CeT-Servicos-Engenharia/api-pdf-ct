@@ -1982,10 +1982,12 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
             color: rgb(0, 0, 0),
           });
 
-          currentY -= 20;
+          currentY -= 10;
 
-          const minSpace = imageSize + boxPadding + headerHeight + 40; // espaço mínimo para próximo bloco
-if ((currentY - minSpace) < 80) { // 80 = margem inferior
+          const conservativeMinSpace = imageSize + boxPadding + headerHeight + 40;
+const relaxedMinSpace = headerHeight + 80; // bloco só de texto (sem imagem)
+const minSpace = (pdfImage ? conservativeMinSpace : relaxedMinSpace); // espaço mínimo para próximo bloco
+if ((currentY - minSpace) < 60) { // 80 = margem inferior
   addFooter(pdfDoc, page9, data, countPages);
   page9 = pdfDoc.addPage();
   countPages++;
@@ -1997,7 +1999,7 @@ if ((currentY - minSpace) < 80) { // 80 = margem inferior
     font: helveticaFont,
     color: rgb(0.3, 0.3, 0.3),
   });
-  currentY = 640;
+  currentY = 680;
 } else {
   // ainda cabe conteúdo, não desenhar rodapé agora
 }
