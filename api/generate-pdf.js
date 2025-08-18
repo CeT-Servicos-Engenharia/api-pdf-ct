@@ -1808,78 +1808,222 @@ async function generatePDF(data, clientData, engenieerData, analystData) {
   // Gera o PDF para dispositivos
   await generateDevicesPDF(pdfDoc, data.inspection.devicesData);
 
-  
+  const page9 = pdfDoc.addPage([595.28, 841.89]);
+  countPages++;
 
-async function generateMapaMedicaoPDF(pdfDoc, data, clientData, headerAssets, helveticaFont, helveticaBoldFont) {
-  const { rgb } = require('pdf-lib');
-  const pageWidth = 595.28;
-  const pageHeight = 841.89;
-  const headerHeight = 20;
-  const startX = 50;
+  let upTo52 = countPages;
 
-  const mapEntries = Object.entries((data && data.inspection && data.inspection.mapOfMedition) || {});
-  for (let i = 0; i < mapEntries.length; i++) {
-    const [key, value] = mapEntries[i];
-    const page9 = pdfDoc.addPage([pageWidth, pageHeight]);
-    countPages++;
+  await addHeader(pdfDoc, page9, clientData, headerAssets);
 
-    await addHeader(pdfDoc, page9, clientData, headerAssets);
+  page9.drawText("5.2 MAPA DE MEDIÇÃO", {
+    x: 50,
+    y: 700,
+    size: 16,
+    font: helveticaBoldFont,
+  });
 
-    if (i === 0) {
-      if (typeof upTo52 !== "undefined") upTo52 = countPages;
-      page9.drawText("5.2 MAPA DE MEDIÇÃO", {
-        x: 50, y: 700, size: 16, font: helveticaBoldFont
-      });
-    } else {
-      page9.drawText("Mapa de Medição – continuação", {
-        x: 50, y: 700, size: 12, font: helveticaFont, color: rgb(0.3,0.3,0.3)
-      });
+  async function prepararImagensDeMedicao(pdfDoc, mapOfMedition) {
+    const imagens = {};
+
+    for (const key of Object.keys(mapOfMedition || {})) {
+      const imageKey = `image${key[0].toUpperCase()}${key.slice(1)}`;
+      const imageURL = mapOfMedition[key]?.[imageKey];
+
+      if (imageURL) {
+        try {
+          const response = await axios.get(imageURL, { responseType: "arraybuffer" });
+          const optimized = await sharp(response.data)
+            .resize({ width: 200 })
+            .jpeg({ quality: 60 })
+            .toBuffer();
+
+          imagens[imageKey] = await pdfDoc.embedJpg(optimized);
+        } catch (error) {
+          console.error(`Erro ao carregar imagem ${imageKey}:`, error.message);
+          imagens[imageKey] = null;
+        }
+      }
     }
 
-    let currentY = 640;
+    return imagens;
+  }
 
-    // faixa azul do grupo
-    page9.drawRectangle({
-      x: startX, y: currentY, width: 495.28, height: headerHeight, color: rgb(0.102,0.204,0.396)
-    });
-    page9.drawText(String(key).toUpperCase(), {
-      x: startX + 210, y: currentY + 5, size: 12, font: helveticaBoldFont, color: rgb(1,1,1)
-    });
-    currentY -= headerHeight + 20;
+  async function addInspectionDataToPDF(
+    page9,
+    pdfDoc,
+    data,
+    startX,
+    startY,
+    font,
+    fontBold,
+    imagensDeMedicaoOtimizadas,
+    clientData,
+    headerAssets
+  ) {
+    const headerHeight = 20; // Altura para o cabeçalho de cada seção
+    const boxPadding = 10; // Padding das caixas
+    const imageSize = 200; // Tamanho das imagens
+    let currentY = startY;
 
-    // sub-seções e medidas
-    Object.entries(value || {})
-      .filter(([subKey, arr]) => String(subKey).startsWith(String(key)) && Array.isArray(arr) && arr.length > 0)
-      .forEach(([subKey, arr]) => {
-        page9.drawRectangle({
-          x: startX, y: currentY, width: 500, height: headerHeight,
-          color: rgb(1,1,1), borderColor: rgb(0.102,0.204,0.396), borderWidth: 1
-        });
-        page9.drawText(`${subKey}:`, {
-          x: startX + 10, y: currentY + 5, size: 10, font: helveticaBoldFont, color: rgb(0,0,0)
-        });
-        currentY -= headerHeight + 10;
+    // Verifica se existem medições
+    const filteredMeditionData = Object.entries(
+      data.inspection.mapOfMedition || {}
+    ).filter(([key, value]) =>
+      Object.keys(value).some(
+        (subKey) =>
+          value[subKey] &&
+          (typeof value[subKey] === "string" ||
+            (Array.isArray(value[subKey]) && value[subKey].length > 0))
+      )
+    );
 
-        const measuresText = (arr || []).map(m => `P${m.id}: ${m.valor}`).join(", ");
-        page9.drawRectangle({
-          x: startX, y: currentY, width: 500, height: headerHeight,
-          color: rgb(1,1,1), borderColor: rgb(0.102,0.204,0.396), borderWidth: 1
-        });
-        page9.drawText(measuresText, {
-          x: startX + 10, y: currentY + 5, size: 10, font: helveticaFont, color: rgb(0,0,0)
-        });
-        currentY -= headerHeight + 10;
+    for (const [key, value] of filteredMeditionData) {
+      // Cabeçalho da seção
+      const sectionTitle = key.toUpperCase() || "Tipo não especificado";
+
+      page9.drawRectangle({
+        x: 50,
+        y: currentY - headerHeight,
+        width: 500,
+        height: headerHeight,
+        color: rgb(0.102, 0.204, 0.396),
+        borderColor: rgb(0.102, 0.204, 0.396),
+        borderWidth: 1,
       });
 
-    await addFooter(pdfDoc, page9, data, countPages);
-  }
+      const textWidth = helveticaFont.widthOfTextAtSize(sectionTitle, 12);
+      const textX = (598.28 - textWidth) / 2;
+
+      page9.drawText(sectionTitle, {
+        x: textX,
+        y: currentY - headerHeight + 5,
+        size: 12,
+        font: fontBold,
+        color: rgb(1, 1, 1),
+      });
+
+      currentY -= headerHeight;
+
+      // Renderizar imagem, se embutida previamente
+      const imageKey = `image${key[0].toUpperCase()}${key.slice(1)}`;
+      const pdfImage = imagensDeMedicaoOtimizadas[imageKey];
+
+      if (pdfImage) {
+        page9.drawRectangle({
+          x: startX,
+          y: currentY - imageSize - 10,
+          width: 500,
+          height: imageSize + 10,
+          color: rgb(1, 1, 1),
+          borderColor: rgb(0.102, 0.204, 0.396),
+          borderWidth: 1,
+        });
+
+        page9.drawImage(pdfImage, {
+          x: (595.28 - 200) / 2,
+          y: currentY - imageSize - 5,
+          width: 200,
+          height: 200,
+        });
+
+        currentY -= imageSize + 10;
+      } else {
+        console.warn(`Imagem otimizada não encontrada para chave: ${imageKey}`);
+      }
+
+      // Renderizar medições
+      Object.entries(value)
+        .filter(
+          ([subKey, measuresArray]) =>
+            subKey.startsWith(key) &&
+            Array.isArray(measuresArray) &&
+            measuresArray.length > 0
+        )
+        .forEach(([subKey, measuresArray]) => {
+          page9.drawRectangle({
+            x: startX,
+            y: currentY - headerHeight,
+            width: 500,
+            height: headerHeight,
+            color: rgb(1, 1, 1),
+            borderColor: rgb(0.102, 0.204, 0.396),
+            borderWidth: 1,
+          });
+
+          page9.drawText(`${subKey}:`, {
+            x: startX + 10,
+            y: currentY - 15,
+            size: 10,
+            font: fontBold,
+            color: rgb(0, 0, 0),
+          });
+
+          currentY -= 20;
+
+          const measuresText = measuresArray
+            .map((measure) => `P${measure.id}: ${measure.valor}`)
+            .join(", ");
+
+          page9.drawRectangle({
+            x: startX,
+            y: currentY - headerHeight,
+            width: 500,
+            height: headerHeight,
+            color: rgb(1, 1, 1),
+            borderColor: rgb(0.102, 0.204, 0.396),
+            borderWidth: 1,
+          });
+
+          page9.drawText(measuresText, {
+            x: startX + 10,
+            y: currentY - 15,
+            size: 10,
+            font,
+            color: rgb(0, 0, 0),
+          });
+
+          currentY -= 20;
+
+          const minSpace = imageSize + boxPadding + headerHeight + 40; // espaço mínimo para próximo bloco
+if ((currentY - minSpace) < 80) { // 80 = margem inferior
+  addFooter(pdfDoc, page9, data, countPages);
+  page9 = pdfDoc.addPage();
+  countPages++;
+  addHeader(pdfDoc, page9, clientData, headerAssets);
+  page9.drawText("Mapa de Medição – continuação", {
+    x: 50,
+    y: 700,
+    size: 12,
+    font: helveticaFont,
+    color: rgb(0.3, 0.3, 0.3),
+  });
+  currentY = 640;
+} else {
+  // ainda cabe conteúdo, não desenhar rodapé agora
 }
+});
 
-let upTo52 = countPages + 1;
+      await addFooter(pdfDoc, page9, data, countPages);
+    }
 
-await generateMapaMedicaoPDF(pdfDoc, data, clientData, headerAssets, helveticaFont, helveticaBoldFont);
+  }
 
-function hasEquipmentBodyData(data) {
+  const imagensDeMedicaoOtimizadas = await prepararImagensDeMedicao(pdfDoc, data.inspection.mapOfMedition);
+
+  await addInspectionDataToPDF(
+    page9,
+    pdfDoc,
+    data,
+    50,
+    690,
+    helveticaFont,
+    helveticaBoldFont,
+    imagensDeMedicaoOtimizadas,
+    clientData,
+    headerAssets,
+  );
+
+  function hasEquipmentBodyData(data) {
     // Verifica se existe dados do tampo superior
     const hasTampoSuperior = data.inspection.tampoSuperiorData && Object.values(data.inspection.tampoSuperiorData).some(value => value && value !== "N/A");
 
