@@ -151,13 +151,37 @@ async function fetchImage(url) {
   }
 }
 
-function formatDate(dateString) {
-  if (!dateString) return "N/A";
-  const date = new Date(dateString);
-  const day = String(date.getDate()).padStart(2, "0");
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const year = date.getFullYear();
-  return `${day}/${month}/${year}`;
+function formatDate(dateInput) {
+  if (!dateInput) return "";
+  const s = String(dateInput).trim();
+  // ISO: YYYY-MM-DD or YYYY-MM-DDTHH:mm:ss
+  const iso = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (iso) {
+    const [, y, m, d] = iso;
+    return `${d}/${m}/${y}`;
+  }
+  // BR already: DD/MM/YYYY
+  const br = s.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  if (br) return s;
+  // US: MM/DD/YYYY -> convert to BR
+  const us = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (us) {
+    let [ , mm, dd, yyyy ] = us;
+    mm = String(mm).padStart(2, "0");
+    dd = String(dd).padStart(2, "0");
+    return `${dd}/${mm}/${yyyy}`;
+  }
+  // Fallback: try Date parse, still output BR
+  const d = new Date(s);
+  if (!isNaN(d)) {
+    const dd = String(d.getDate()).padStart(2, "0");
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const yy = d.getFullYear();
+    return `${dd}/${mm}/${yy}`;
+  }
+  return s;
+}
+/${month}/${year}`;
 }
 
 async function getProjectData(projectId) {
