@@ -252,7 +252,7 @@ async function generatePDF(projectData, clientData, engenieerData) {
   const lineEndX = 598.28 * 0.75;
   page.drawLine({ start: { x: lineStartX, y: 149 }, end: { x: lineEndX, y: 148 }, thickness: 1, color: rgb(0, 0, 0), opacity: 1 });
   
-  const text1 = "Resp. Téc Cleonis Batista Santos";
+  const text1 = "Resp. Téc Thiago Wherman C. Borges";
   const text1Width = helveticaFont.widthOfTextAtSize(text1, 12);
   const text1X = (598.28 - text1Width) / 2;
   page.drawText(text1, { x: text1X, y: 136, size: 12, color: rgb(0, 0, 0), font: helveticaFont });
