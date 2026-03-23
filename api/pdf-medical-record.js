@@ -94,7 +94,7 @@ async function addHeader(pdfDoc, page, clientData, assets) {
     const empresaText = "C&T Serviço Engenharia";
     const empresaTextWidth = helveticaBoldFont.widthOfTextAtSize(empresaText, 10);
     page.drawText(empresaText, { x: (pageWidth - empresaTextWidth) / 2, y: 790, size: 10, font: helveticaBoldFont });
-    const enderecoText = "Avenida Sábia Q:30 L:27, CEP 75904-370";
+    const enderecoText = "Rua Dário Alves de Paiva N° 2062, CEP 75901-773";
     const enderecoTextWidth = helveticaFont.widthOfTextAtSize(enderecoText, 10);
     page.drawText(enderecoText, { x: (pageWidth - enderecoTextWidth) / 2, y: 780, size: 10, font: helveticaFont });
     const contatoText = "(64) 99244-2480, cleonis@engenhariact.com.br";
