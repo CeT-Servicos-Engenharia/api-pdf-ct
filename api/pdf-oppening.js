@@ -150,7 +150,7 @@ async function addHeader(pdfDoc, page, clientData, assets) {
       size: 10,
       font: helveticaBoldFont,
     });
-    const enderecoText = "Avenida Sábia Q:30 L:27, CEP 75904-370";
+    const enderecoText = "Rua Dário Alves de Paiva N° 2062, CEP 75901-773";
     const enderecoTextWidth = helveticaFont.widthOfTextAtSize(enderecoText, 10);
     page.drawText(enderecoText, {
       x: (pageWidth - enderecoTextWidth) / 2,
